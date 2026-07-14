@@ -1,5 +1,5 @@
 import express from "express";
-import { generatePair } from "../auth/pairManager.js";
+import authEngine from "../auth/authEngine.js";
 
 const router = express.Router();
 
@@ -16,17 +16,22 @@ router.post("/", async (req, res) => {
             });
         }
 
-        const result = await generatePair(phone);
+        const result = await authEngine.startPair(phone);
 
-        res.json(result);
+        return res.json({
+            success: true,
+            jobId: result.jobId,
+            pairCode: result.pairCode,
+            sessionId: result.sessionId
+        });
 
-    } catch (err) {
+    } catch (error) {
 
-        console.error(err);
+        console.error(error);
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
-            message: "Failed to generate pair code."
+            message: error.message || "Failed to generate Pair Code."
         });
 
     }
