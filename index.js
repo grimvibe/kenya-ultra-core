@@ -1,6 +1,8 @@
-import dotenv from "dotenv";
 import express from "express";
+import dotenv from "dotenv";
 import chalk from "chalk";
+
+import pairRouter from "./api/pair.js";
 
 dotenv.config();
 
@@ -8,7 +10,10 @@ const app = express();
 
 app.use(express.json());
 
+app.use("/pair", pairRouter);
+
 const PORT = process.env.PORT || 3000;
+
 
 console.clear();
 
