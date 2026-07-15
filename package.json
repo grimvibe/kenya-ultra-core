@@ -11,8 +11,8 @@
   "author": "Lucid Dev",
   "license": "MIT",
   "dependencies": {
-    "@whiskeysockets/baileys": "6.17.16",
     "axios": "^1.11.0",
+    "baileys": "^7.0.0-rc13",
     "chalk": "^5.6.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
