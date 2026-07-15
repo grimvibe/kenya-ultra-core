@@ -7,31 +7,52 @@ router.post("/", async (req, res) => {
 
     try {
 
-        const { phone } = req.body;
+        let { phone } = req.body;
 
         if (!phone) {
+
             return res.status(400).json({
                 success: false,
                 message: "Phone number is required."
             });
+
+        }
+
+        phone = phone.replace(/\D/g, "");
+
+        if (phone.length < 10) {
+
+            return res.status(400).json({
+                success: false,
+                message: "Invalid phone number."
+            });
+
         }
 
         const result = await authEngine.startPair(phone);
 
-        return res.json({
+        return res.status(200).json({
+
             success: true,
+
+            message: "Pair code generated successfully.",
+
             jobId: result.jobId,
-            pairCode: result.pairCode,
-            sessionId: result.sessionId
+
+            pairCode: result.pairCode
+
         });
 
     } catch (error) {
 
-        console.error(error);
+        console.error("PAIR API ERROR:", error);
 
         return res.status(500).json({
+
             success: false,
-            message: error.message || "Failed to generate Pair Code."
+
+            message: error.message || "Internal Server Error"
+
         });
 
     }
