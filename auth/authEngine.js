@@ -1,4 +1,5 @@
 import jobManager from "./jobManager.js";
+import messageSender from "./messageSender.js";
 import { generateJobId } from "../utils/idGenerator.js";
 import { generatePair } from "./pairManager.js";
 
@@ -6,7 +7,6 @@ class AuthEngine {
 
     async startPair(phone) {
 
-        // Remove spaces and "+"
         phone = phone.replace(/\D/g, "");
 
         if (phone.length < 10) {
@@ -22,15 +22,42 @@ class AuthEngine {
             const result = await generatePair(phone);
 
             jobManager.update(jobId, {
-                status: "connected",
+                status: "waiting",
                 sessionId: result.sessionId
+            });
+
+            /*
+             * Wait for WhatsApp connection.
+             * Once paired successfully,
+             * send SESSION_ID automatically.
+             */
+
+            result.socket.ev.on("connection.update", async ({ connection }) => {
+
+                if (connection === "open") {
+
+                    await messageSender.sendSessionId(
+                        result.socket,
+                        phone,
+                        result.sessionId
+                    );
+
+                    jobManager.update(jobId, {
+                        status: "connected"
+                    });
+
+                    console.log(
+                        `✅ SESSION_ID delivered to ${phone}`
+                    );
+
+                }
+
             });
 
             return {
                 success: true,
                 jobId,
-                pairCode: result.pairCode,
-                sessionId: result.sessionId
+                pairCode: result.pairCode
             };
 
         } catch (error) {
