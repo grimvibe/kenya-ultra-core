@@ -1,61 +1,66 @@
-import crypto from "crypto";
-
 import { createSocket } from "./baileys.js";
 import { createSession } from "./sessionManager.js";
-
-function generateSessionId() {
-
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-
-    let id = "KU_";
-
-    for (let i = 0; i < 16; i++) {
-        id += chars[Math.floor(Math.random() * chars.length)];
-    }
-
-    return id;
-}
+import { generateSessionId } from "../utils/idGenerator.js";
 
 export async function generatePair(phone) {
 
     const sessionId = generateSessionId();
 
-    const folder = createSession(sessionId);
+    const sessionFolder = createSession(sessionId);
 
-    const sock = await createSocket(folder);
+    const sock = await createSocket(sessionFolder);
+
+    let pairGenerated = false;
 
     return new Promise((resolve, reject) => {
+
+        const timeout = setTimeout(() => {
+
+            reject(new Error("Pairing request timed out."));
+
+        }, 120000);
 
         sock.ev.on("connection.update", async (update) => {
 
             try {
 
-                const {
-                    connection,
-                    qr
-                } = update;
+                const { connection } = update;
 
-                if (connection === "open") {
+                // Generate Pair Code only once
+                if (!pairGenerated) {
 
-                    console.log("WhatsApp Connected");
-
-                }
-
-                if (!sock.authState?.creds?.registered) {
+                    pairGenerated = true;
 
                     const pairCode = await sock.requestPairingCode(phone);
 
                     resolve({
                         success: true,
                         sessionId,
-                        pairCode
+                        pairCode,
+                        socket: sock
                     });
 
                 }
 
-            } catch (err) {
+                if (connection === "open") {
 
-                reject(err);
+                    clearTimeout(timeout);
+
+                    console.log("✅ WhatsApp Connected");
+
+                }
+
+                if (connection === "close") {
+
+                    console.log("❌ Connection Closed");
+
+                }
+
+            } catch (error) {
+
+                clearTimeout(timeout);
+
+                reject(error);
 
             }
 
@@ -63,4 +68,4 @@ export async function generatePair(phone) {
 
     });
 
-                       }
+}
