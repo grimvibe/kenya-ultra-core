@@ -10,57 +10,68 @@ export async function generatePair(phone) {
 
     const sock = await createSocket(sessionFolder);
 
-    let pairGenerated = false;
+    return new Promise(async (resolve, reject) => {
 
-    return new Promise((resolve, reject) => {
+        let resolved = false;
 
         const timeout = setTimeout(() => {
 
-            reject(new Error("Pairing request timed out."));
+            if (!resolved) {
+                reject(new Error("Pairing request timed out."));
+            }
 
         }, 120000);
 
         sock.ev.on("connection.update", async (update) => {
 
-            try {
+            const { connection, lastDisconnect } = update;
 
-                const { connection } = update;
+            console.log("Connection Update:", update);
 
-                // Generate Pair Code only once
-                if (!pairGenerated) {
+            if (connection === "connecting") {
 
-                    pairGenerated = true;
+                try {
 
-                    const pairCode = await sock.requestPairingCode(phone);
+                    if (!resolved) {
 
-                    resolve({
-                        success: true,
-                        sessionId,
-                        pairCode,
-                        socket: sock
-                    });
+                        const pairCode = await sock.requestPairingCode(phone);
 
-                }
+                        resolved = true;
 
-                if (connection === "open") {
+                        clearTimeout(timeout);
+
+                        resolve({
+                            success: true,
+                            sessionId,
+                            pairCode,
+                            socket: sock
+                        });
+
+                    }
+
+                } catch (err) {
 
                     clearTimeout(timeout);
 
-                    console.log("✅ WhatsApp Connected");
+                    reject(err);
 
                 }
 
-                if (connection === "close") {
+            }
 
-                    console.log("❌ Connection Closed");
+            if (connection === "open") {
 
-                }
+                console.log("✅ WhatsApp Connected");
 
-            } catch (error) {
+            }
 
-                clearTimeout(timeout);
+            if (connection === "close") {
 
-                reject(error);
+                console.log("❌ Connection Closed");
+
+                console.log("Disconnect Reason:");
+
+                console.dir(lastDisconnect, { depth: null });
 
             }
 
