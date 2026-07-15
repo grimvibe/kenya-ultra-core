@@ -13,7 +13,7 @@ export async function createSocket(sessionFolder) {
   const sock = makeWASocket({
     version,
     auth: state,
-    logger: P({ level: "debug" }),
+    logger: P({ level: "trace" }),
     printQRInTerminal: false,
     browser: ["Kenya-Ultra", "Chrome", "1.0.0"]
   });
