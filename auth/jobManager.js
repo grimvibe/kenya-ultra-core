@@ -6,11 +6,14 @@ class JobManager {
 
     create(jobId, phone) {
 
+        const now = Date.now();
+
         const job = {
             id: jobId,
             phone,
             status: "waiting",
-            createdAt: Date.now(),
+            createdAt: now,
+            updatedAt: now,
             sessionId: null,
             socket: null
         };
@@ -21,8 +24,12 @@ class JobManager {
 
     }
 
+    has(jobId) {
+        return this.jobs.has(jobId);
+    }
+
     get(jobId) {
-        return this.jobs.get(jobId);
+        return this.jobs.get(jobId) || null;
     }
 
     update(jobId, data) {
@@ -31,7 +38,9 @@ class JobManager {
 
         if (!job) return null;
 
-        Object.assign(job, data);
+        Object.assign(job, data, {
+            updatedAt: Date.now()
+        });
 
         this.jobs.set(jobId, job);
 
@@ -44,17 +53,25 @@ class JobManager {
     }
 
     getAll() {
-        return [...this.jobs.values()];
+        return Array.from(this.jobs.values());
+    }
+
+    size() {
+        return this.jobs.size;
     }
 
     cleanExpired(timeout = 120000) {
 
         const now = Date.now();
 
-        for (const [id, job] of this.jobs) {
+        for (const [id, job] of this.jobs.entries()) {
 
-            if (now - job.createdAt > timeout) {
+            if (now - job.updatedAt >= timeout) {
+
+                console.log(`🧹 Removing expired job: ${id}`);
+
                 this.jobs.delete(id);
+
             }
 
         }
