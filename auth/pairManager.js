@@ -2,54 +2,69 @@ import { DisconnectReason } from "baileys";
 import { createSocket } from "./baileys.js";
 import { createSession } from "./sessionManager.js";
 import { generateSessionId } from "../utils/idGenerator.js";
+import { encodeSession } from "../utils/sessionEncoder.js";
+import messageSender from "./messageSender.js";
+import jobManager from "./jobManager.js";
 
-export async function generatePair(phone) {
+export async function generatePair(phone, jobId) {
     const sessionId = generateSessionId();
     const sessionFolder = createSession(sessionId);
 
     return new Promise((resolve, reject) => {
-        let settled = false;
+        let codeSettled = false;
         let pairCode = null;
         let sock = null;
 
-        const timeout = setTimeout(() => {
-            if (!settled) {
-                settled = true;
+        // This only needs to cover "get the pairing code" now, not the
+        // whole flow — the user still has up to 60s to actually type it
+        // into WhatsApp, but that no longer blocks the HTTP response.
+        const codeTimeout = setTimeout(() => {
+            if (!codeSettled) {
+                codeSettled = true;
                 try { sock?.end(); } catch (_) {}
+                jobManager.update(jobId, { status: "failed" });
                 reject(new Error("Pairing request timed out."));
             }
-        }, 120000);
+        }, 60000);
 
-        const finish = (err, result) => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timeout);
-            if (err) reject(err);
-            else resolve(result);
+        const finishCode = (err, result) => {
+            if (codeSettled) return;
+            codeSettled = true;
+            clearTimeout(codeTimeout);
+            if (err) {
+                jobManager.update(jobId, { status: "failed" });
+                reject(err);
+            } else {
+                resolve(result);
+            }
         };
 
         const connect = async () => {
             sock = await createSocket(sessionFolder);
 
-            // Only request a pairing code if this connection isn't already
-            // registered. On the very first connect, creds.registered is
-            // false, so we request a code. On the reconnect that follows a
-            // successful pairing (WhatsApp's "restart required" 515 close),
-            // creds.registered is now true, so we skip straight to waiting
-            // for "open" instead of asking for a brand new code.
             if (!sock.authState?.creds?.registered && !pairCode) {
                 (async () => {
                     try {
                         await new Promise((r) => setTimeout(r, 3000));
                         pairCode = await sock.requestPairingCode(phone);
                         console.log(`🔑 Pair code generated for ${phone}: ${pairCode}`);
+
+                        // Resolve as soon as the code exists — the API layer
+                        // returns this to the website right away instead of
+                        // waiting for the full WhatsApp handshake to finish.
+                        finishCode(null, {
+                            success: true,
+                            sessionId,
+                            pairCode,
+                            socket: sock
+                        });
                     } catch (err) {
-                        finish(err);
+                        finishCode(err);
                     }
                 })();
             }
 
-            sock.ev.on("connection.update", (update) => {
+            sock.ev.on("connection.update", async (update) => {
                 const { connection, lastDisconnect } = update;
 
                 console.log("Connection Update:", connection);
@@ -57,12 +72,22 @@ export async function generatePair(phone) {
                 if (connection === "open") {
                     console.log("✅ WhatsApp Connected");
 
-                    finish(null, {
-                        success: true,
-                        sessionId,
-                        pairCode,
-                        socket: sock
+                    const sessionString = encodeSession(sock.authState.creds);
+
+                    await messageSender.sendSessionId(sock, phone, sessionString);
+
+                    jobManager.update(jobId, {
+                        status: "connected",
+                        sessionId: sessionString
                     });
+
+                    console.log(`✅ SESSION_ID delivered to ${phone}`);
+
+                    try {
+                        sock.end();
+                    } catch (_) {
+                        // no-op — socket may already be closed
+                    }
                 }
 
                 if (connection === "close") {
@@ -72,22 +97,21 @@ export async function generatePair(phone) {
                     console.log("❌ Connection Closed", statusCode);
 
                     if (loggedOut) {
-                        finish(new Error("Device was logged out during pairing."));
+                        finishCode(new Error("Device was logged out during pairing."));
+                        jobManager.update(jobId, { status: "failed" });
                         return;
                     }
 
                     if (!pairCode) {
-                        // Closed before a code was ever issued — genuine failure,
-                        // don't retry silently.
-                        finish(new Error("Connection Closed"));
+                        // Closed before a code was ever issued — genuine failure.
+                        finishCode(new Error("Connection Closed"));
                         return;
                     }
 
-                    // A pair code was already issued, so this close is almost
-                    // certainly WhatsApp's expected "restart required" signal
-                    // (stream:error code 515) after a successful pairing.
-                    // Reconnect using the same session folder — creds are now
-                    // registered, so this completes the handshake.
+                    // A code was already issued — this is WhatsApp's expected
+                    // "restart required" (515) close after successful pairing,
+                    // OR a genuine drop after the code was issued but not yet
+                    // used. Either way, reconnect with the same session folder.
                     console.log("🔄 Restarting connection to complete pairing...");
                     connect();
                 }
@@ -96,4 +120,4 @@ export async function generatePair(phone) {
 
         connect();
     });
-            }
+                            }
