@@ -4,41 +4,53 @@ class MessageSender {
 
         try {
 
+            phone = phone.replace(/\D/g, "");
+
+            if (!phone) {
+                throw new Error("Invalid phone number.");
+            }
+
             const jid = `${phone}@s.whatsapp.net`;
 
-            const message =
-`🎉 *Kenya-Ultra Connected Successfully*
+            const message = `🎉 *Kenya-Ultra Connected Successfully*
 
-Your bot has been linked successfully.
+Your bot has been paired successfully.
 
 ━━━━━━━━━━━━━━
 
-🔑 *SESSION_ID*
+🔑 *YOUR SESSION_ID*
 
 \`${sessionId}\`
 
 ━━━━━━━━━━━━━━
 
-⚠️ Keep this SESSION_ID safe.
-Do NOT share it with anyone.
+⚠️ IMPORTANT
 
-Paste it into your public Kenya-Ultra bot's .env file:
+• Keep this SESSION_ID private.
+• Never share it with anyone.
+• Store it safely.
 
+Add it to your Kenya-Ultra bot:
+
+\`\`\`
 SESSION_ID=${sessionId}
+\`\`\`
 
-Thank you for using Kenya-Ultra 💚`;
+Thank you for using *Kenya-Ultra* 💚
+Happy Coding 🚀`;
 
             await sock.sendMessage(jid, {
-                text: message
+                text: message,
+                previewType: "NONE"
             });
 
-            console.log(`✅ SESSION_ID sent to ${phone}`);
+            console.log(`✅ SESSION_ID successfully sent to ${phone}`);
 
             return true;
 
         } catch (error) {
 
-            console.error("Failed to send SESSION_ID:", error);
+            console.error("❌ Failed to send SESSION_ID:", error);
 
             return false;
 
@@ -50,17 +62,20 @@ Thank you for using Kenya-Ultra 💚`;
 
         try {
 
+            phone = phone.replace(/\D/g, "");
+
             const jid = `${phone}@s.whatsapp.net`;
 
             await sock.sendMessage(jid, {
-                text
+                text,
+                previewType: "NONE"
             });
 
             return true;
 
         } catch (error) {
 
-            console.error(error);
+            console.error("❌ Failed to send message:", error);
 
             return false;
 
