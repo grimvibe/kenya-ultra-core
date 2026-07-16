@@ -7,23 +7,40 @@ import makeWASocket, {
 import P from "pino";
 
 export async function createSocket(sessionFolder) {
+
+  // Create authentication state
   const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
 
+  // Always use the latest supported WhatsApp Web version
   const { version } = await fetchLatestBaileysVersion();
 
   const sock = makeWASocket({
+
     version,
+
     auth: state,
-    logger: P({ level: "trace" }),
+
+    // Change to "trace" whenever you're debugging
+    logger: P({
+      level: "info"
+    }),
+
     printQRInTerminal: false,
-    // IMPORTANT: pairing codes require a recognized browser signature.
-    // A custom name here (e.g. ["Kenya-Ultra", "Chrome", "1.0.0"]) causes
-    // WhatsApp to reject the companion_hello stage with a 400 bad-request,
-    // which makes the generated pair code invalid on arrival.
-    browser: Browsers.ubuntu("Chrome")
+
+    // Pair Codes work correctly using Ubuntu Chrome.
+    browser: Browsers.ubuntu("Chrome"),
+
+    // Don't download unnecessary history
+    syncFullHistory: false,
+
+    // Show the bot as online after connecting
+    markOnlineOnConnect: true
+
   });
 
+  // Save credentials automatically whenever they change
   sock.ev.on("creds.update", saveCreds);
 
   return sock;
+
 }
