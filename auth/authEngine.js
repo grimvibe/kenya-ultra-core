@@ -26,15 +26,18 @@ class AuthEngine {
                 sessionId: result.sessionId
             });
 
-            /*
-             * Wait for WhatsApp connection.
-             * Once paired successfully,
-             * send SESSION_ID automatically.
-             */
+            // Prevent sending SESSION_ID twice
+            let delivered = false;
 
             result.socket.ev.on("connection.update", async ({ connection }) => {
 
-                if (connection === "open") {
+                if (connection !== "open") return;
+
+                if (delivered) return;
+
+                delivered = true;
+
+                try {
 
                     await messageSender.sendSessionId(
                         result.socket,
@@ -49,6 +52,17 @@ class AuthEngine {
                     console.log(
                         `✅ SESSION_ID delivered to ${phone}`
                     );
+
+                } catch (err) {
+
+                    console.error(
+                        "Failed to deliver SESSION_ID:",
+                        err
+                    );
+
+                    jobManager.update(jobId, {
+                        status: "delivery_failed"
+                    });
 
                 }
 
