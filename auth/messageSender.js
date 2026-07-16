@@ -24,17 +24,19 @@ Your bot has been paired successfully.
 
 ━━━━━━━━━━━━━━
 
-⚠️ IMPORTANT
+⚠️ *IMPORTANT*
 
 • Keep this SESSION_ID private.
 • Never share it with anyone.
 • Store it safely.
 
-Add it to your Kenya-Ultra bot:
+Paste the SESSION_ID above into your Kenya-Ultra bot's \`.env\` file like this:
 
 \`\`\`
-SESSION_ID=${sessionId}
+SESSION_ID=YOUR_SESSION_ID
 \`\`\`
+
+*(Replace **YOUR_SESSION_ID** with the SESSION_ID shown above.)*
 
 Thank you for using *Kenya-Ultra* 💚
 Happy Coding 🚀`;
@@ -63,6 +65,10 @@ Happy Coding 🚀`;
         try {
 
             phone = phone.replace(/\D/g, "");
+
+            if (!phone) {
+                throw new Error("Invalid phone number.");
+            }
 
             const jid = `${phone}@s.whatsapp.net`;
 
