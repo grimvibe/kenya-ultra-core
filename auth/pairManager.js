@@ -15,24 +15,35 @@ export async function generatePair(phone, jobId) {
         let pairCode = null;
         let sock = null;
 
-        // This only needs to cover "get the pairing code" now, not the
-        // whole flow — the user still has up to 60s to actually type it
-        // into WhatsApp, but that no longer blocks the HTTP response.
+        // Prevent sending SESSION_ID multiple times
+        let sessionDelivered = false;
+
         const codeTimeout = setTimeout(() => {
             if (!codeSettled) {
                 codeSettled = true;
-                try { sock?.end(); } catch (_) {}
-                jobManager.update(jobId, { status: "failed" });
+                try {
+                    sock?.end();
+                } catch (_) {}
+
+                jobManager.update(jobId, {
+                    status: "failed"
+                });
+
                 reject(new Error("Pairing request timed out."));
             }
         }, 60000);
 
         const finishCode = (err, result) => {
             if (codeSettled) return;
+
             codeSettled = true;
             clearTimeout(codeTimeout);
+
             if (err) {
-                jobManager.update(jobId, { status: "failed" });
+                jobManager.update(jobId, {
+                    status: "failed"
+                });
+
                 reject(err);
             } else {
                 resolve(result);
@@ -46,18 +57,18 @@ export async function generatePair(phone, jobId) {
                 (async () => {
                     try {
                         await new Promise((r) => setTimeout(r, 3000));
+
                         pairCode = await sock.requestPairingCode(phone);
+
                         console.log(`🔑 Pair code generated for ${phone}: ${pairCode}`);
 
-                        // Resolve as soon as the code exists — the API layer
-                        // returns this to the website right away instead of
-                        // waiting for the full WhatsApp handshake to finish.
                         finishCode(null, {
                             success: true,
                             sessionId,
                             pairCode,
                             socket: sock
                         });
+
                     } catch (err) {
                         finishCode(err);
                     }
@@ -70,11 +81,29 @@ export async function generatePair(phone, jobId) {
                 console.log("Connection Update:", connection);
 
                 if (connection === "open") {
+
                     console.log("✅ WhatsApp Connected");
+
+                    // SESSION_ID already sent before?
+                    if (sessionDelivered) {
+                        console.log("⚠ SESSION_ID already delivered. Ignoring duplicate connection.");
+
+                        try {
+                            sock.end();
+                        } catch (_) {}
+
+                        return;
+                    }
+
+                    sessionDelivered = true;
 
                     const sessionString = encodeSession(sock.authState.creds);
 
-                    await messageSender.sendSessionId(sock, phone, sessionString);
+                    await messageSender.sendSessionId(
+                        sock,
+                        phone,
+                        sessionString
+                    );
 
                     jobManager.update(jobId, {
                         status: "connected",
@@ -85,34 +114,51 @@ export async function generatePair(phone, jobId) {
 
                     try {
                         sock.end();
-                    } catch (_) {
-                        // no-op — socket may already be closed
-                    }
+                    } catch (_) {}
                 }
 
                 if (connection === "close") {
-                    const statusCode = lastDisconnect?.error?.output?.statusCode;
-                    const loggedOut = statusCode === DisconnectReason.loggedOut;
+
+                    const statusCode =
+                        lastDisconnect?.error?.output?.statusCode;
+
+                    const loggedOut =
+                        statusCode === DisconnectReason.loggedOut;
 
                     console.log("❌ Connection Closed", statusCode);
 
                     if (loggedOut) {
-                        finishCode(new Error("Device was logged out during pairing."));
-                        jobManager.update(jobId, { status: "failed" });
+
+                        finishCode(
+                            new Error(
+                                "Device was logged out during pairing."
+                            )
+                        );
+
+                        jobManager.update(jobId, {
+                            status: "failed"
+                        });
+
+                        return;
+                    }
+
+                    // Don't reconnect after SESSION_ID has already been sent
+                    if (sessionDelivered) {
+                        console.log("✅ Pairing complete. Not reconnecting.");
                         return;
                     }
 
                     if (!pairCode) {
-                        // Closed before a code was ever issued — genuine failure.
-                        finishCode(new Error("Connection Closed"));
+
+                        finishCode(
+                            new Error("Connection Closed")
+                        );
+
                         return;
                     }
 
-                    // A code was already issued — this is WhatsApp's expected
-                    // "restart required" (515) close after successful pairing,
-                    // OR a genuine drop after the code was issued but not yet
-                    // used. Either way, reconnect with the same session folder.
                     console.log("🔄 Restarting connection to complete pairing...");
+
                     connect();
                 }
             });
@@ -120,4 +166,4 @@ export async function generatePair(phone, jobId) {
 
         connect();
     });
-                            }
+}
