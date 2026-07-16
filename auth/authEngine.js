@@ -1,5 +1,4 @@
 import jobManager from "./jobManager.js";
-import messageSender from "./messageSender.js";
 import { generateJobId } from "../utils/idGenerator.js";
 import { generatePair } from "./pairManager.js";
 
@@ -19,54 +18,13 @@ class AuthEngine {
 
         try {
 
-            const result = await generatePair(phone);
+            // Resolves as soon as the pair code exists — pairManager.js
+            // handles the rest of the connection lifecycle (reconnects,
+            // sending the SESSION_ID once truly connected) internally
+            // from here on, using jobId to keep the job record updated.
+            const result = await generatePair(phone, jobId);
 
-            jobManager.update(jobId, {
-                status: "waiting",
-                sessionId: result.sessionId
-            });
-
-            // Prevent sending SESSION_ID twice
-            let delivered = false;
-
-            result.socket.ev.on("connection.update", async ({ connection }) => {
-
-                if (connection !== "open") return;
-
-                if (delivered) return;
-
-                delivered = true;
-
-                try {
-
-                    await messageSender.sendSessionId(
-                        result.socket,
-                        phone,
-                        result.sessionId
-                    );
-
-                    jobManager.update(jobId, {
-                        status: "connected"
-                    });
-
-                    console.log(
-                        `✅ SESSION_ID delivered to ${phone}`
-                    );
-
-                } catch (err) {
-
-                    console.error(
-                        "Failed to deliver SESSION_ID:",
-                        err
-                    );
-
-                    jobManager.update(jobId, {
-                        status: "delivery_failed"
-                    });
-
-                }
-
-            });
+            jobManager.update(jobId, { status: "waiting" });
 
             return {
                 success: true,
@@ -76,9 +34,7 @@ class AuthEngine {
 
         } catch (error) {
 
-            jobManager.update(jobId, {
-                status: "failed"
-            });
+            jobManager.update(jobId, { status: "failed" });
 
             throw error;
 
