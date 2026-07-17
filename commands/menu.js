@@ -1,3 +1,4 @@
+import Reply from "../utils/reply.js";
 import { getCommands } from "./index.js";
 
 export default {
@@ -5,7 +6,7 @@ export default {
     description: "Display the Kenya-Ultra command menu.",
     category: "General",
 
-    async execute({ args, sessionId }) {
+    async execute(message) {
 
         const commands = getCommands();
 
@@ -25,7 +26,7 @@ export default {
 
         let menu = `╭━━━〔 🤖 Kenya-Ultra 〕━━━⬣
 
-Welcome to Kenya-Ultra
+Welcome ${message.pushName || "User"} 👋
 
 ━━━━━━━━━━━━━━
 
@@ -38,7 +39,7 @@ Welcome to Kenya-Ultra
             grouped[category]
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .forEach(cmd => {
-                    menu += `• .${cmd.name} — ${cmd.description}\n`;
+                    menu += `• .${cmd.name}\n`;
                 });
 
             menu += "\n";
@@ -47,17 +48,18 @@ Welcome to Kenya-Ultra
 
         menu += `━━━━━━━━━━━━━━
 
-📊 Total Commands: ${commands.length}
+📊 *Statistics*
 
-⚡ Kenya-Ultra Core
-🚀 Version: 1.0.0
+• Total Commands : ${commands.length}
+• Version : v1.0.0
+• Status : 🟢 Online
 
-Powered by Kenya-Ultra 💚`;
+━━━━━━━━━━━━━━
 
-        return {
-            type: "text",
-            text: menu
-        };
+💚 Powered by Kenya-Ultra
+⚡ Fast • Secure • Reliable`;
+
+        return Reply.text(menu);
 
     }
 
