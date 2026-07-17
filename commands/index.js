@@ -7,6 +7,16 @@ const __dirname = path.dirname(__filename);
 
 const commands = new Map();
 
+// Wrap any promise so it can never hang forever
+function withTimeout(promise, ms, label) {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+        ),
+    ]);
+}
+
 async function loadCommands() {
 
     commands.clear();
@@ -22,9 +32,16 @@ async function loadCommands() {
 
         try {
 
-            const module = await import(
+            const importUrl =
                 pathToFileURL(path.join(__dirname, file)).href +
-                `?update=${Date.now()}`
+                `?update=${Date.now()}`;
+
+            // If a command file hangs on import (e.g. DB connect at module
+            // scope), this will time out instead of freezing the whole app.
+            const module = await withTimeout(
+                import(importUrl),
+                8000,
+                `import(${file})`
             );
 
             const command = module.default;
@@ -61,4 +78,10 @@ export function getCommands() {
 
 export default commands;
 
-await loadCommands();
+try {
+    await withTimeout(loadCommands(), 20000, "loadCommands()");
+} catch (err) {
+    console.error("❌ loadCommands() failed or hung:", err.message);
+    // Don't let the app boot in a broken half-loaded state
+    process.exit(1);
+}
