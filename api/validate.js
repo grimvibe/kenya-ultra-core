@@ -27,16 +27,20 @@ router.post("/", async (req, res) => {
             valid: true,
             message: "SESSION_ID verified successfully.",
 
-            user: {
+            client: {
                 id: creds.me?.id || null,
                 name: creds.me?.name || null
             },
 
-            creds
+            runtime: {
+                auth: creds
+            }
 
         });
 
     } catch (error) {
+
+        console.error("SESSION VALIDATION ERROR:", error);
 
         return res.status(401).json({
 
