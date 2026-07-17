@@ -10,30 +10,40 @@ router.post("/", async (req, res) => {
         const { sessionId } = req.body;
 
         if (!sessionId) {
+
             return res.status(400).json({
                 success: false,
+                valid: false,
                 message: "SESSION_ID is required."
             });
+
         }
 
         const creds = decodeSession(sessionId);
 
         return res.status(200).json({
+
             success: true,
             valid: true,
             message: "SESSION_ID verified successfully.",
+
             user: {
                 id: creds.me?.id || null,
                 name: creds.me?.name || null
-            }
+            },
+
+            creds
+
         });
 
     } catch (error) {
 
         return res.status(401).json({
+
             success: false,
             valid: false,
             message: "Invalid SESSION_ID."
+
         });
 
     }
