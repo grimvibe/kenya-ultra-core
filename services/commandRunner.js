@@ -1,35 +1,38 @@
 import { getCommand } from "../commands/index.js";
+import Reply from "../utils/reply.js";
 
 class CommandRunner {
 
-    async run(commandName, options = {}) {
+    async run(commandName, message) {
 
         const command = getCommand(commandName);
 
         if (!command) {
-            throw new Error(`Unknown command: ${commandName}`);
+            return Reply.error(`Unknown command: ${commandName}`);
         }
 
         try {
 
-            const result = await command.execute(options);
+            const response = await command.execute(message);
 
-            return {
-                success: true,
-                command: command.name,
-                category: command.category,
-                result
-            };
+            if (!response) {
+                return Reply.error(
+                    `Command "${commandName}" returned no response.`
+                );
+            }
+
+            return response;
 
         } catch (error) {
 
-            console.error(`❌ Command "${commandName}" failed:`, error);
+            console.error(
+                `Command "${commandName}" failed:`,
+                error
+            );
 
-            return {
-                success: false,
-                command: command.name,
-                message: error.message || "Command execution failed."
-            };
+            return Reply.error(
+                "An unexpected error occurred while executing this command."
+            );
 
         }
 
