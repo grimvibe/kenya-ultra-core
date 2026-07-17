@@ -1,13 +1,11 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
+import commands from "./commandStore.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const commands = new Map();
-
-// Wrap any promise so it can never hang forever
 function withTimeout(promise, ms, label) {
     return Promise.race([
         promise,
@@ -25,7 +23,8 @@ async function loadCommands() {
         .readdirSync(__dirname)
         .filter(file =>
             file.endsWith(".js") &&
-            file !== "index.js"
+            file !== "index.js" &&
+            file !== "commandStore.js"
         );
 
     for (const file of files) {
@@ -36,8 +35,6 @@ async function loadCommands() {
                 pathToFileURL(path.join(__dirname, file)).href +
                 `?update=${Date.now()}`;
 
-            // If a command file hangs on import (e.g. DB connect at module
-            // scope), this will time out instead of freezing the whole app.
             const module = await withTimeout(
                 import(importUrl),
                 8000,
@@ -68,20 +65,13 @@ async function loadCommands() {
 
 }
 
-export function getCommand(name) {
-    return commands.get(name.toLowerCase());
-}
-
-export function getCommands() {
-    return [...commands.values()];
-}
-
+// Re-export so anything that used to import these from index.js still works
+export { getCommand, getCommands } from "./commandStore.js";
 export default commands;
 
 try {
     await withTimeout(loadCommands(), 20000, "loadCommands()");
 } catch (err) {
     console.error("❌ loadCommands() failed or hung:", err.message);
-    // Don't let the app boot in a broken half-loaded state
     process.exit(1);
 }
