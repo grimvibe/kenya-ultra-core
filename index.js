@@ -4,6 +4,7 @@ import chalk from "chalk";
 import cors from "cors";
 
 import pairRouter from "./api/pair.js";
+import executeRouter from "./api/execute.js";
 import validateRouter from "./api/validate.js";
 
 dotenv.config();
@@ -22,6 +23,7 @@ app.use(express.json());
 // API Routes
 app.use("/pair", pairRouter);
 app.use("/validate", validateRouter);
+app.use("/execute", executeRouter);
 
 const PORT = process.env.PORT || 3000;
 
@@ -47,7 +49,8 @@ app.get("/", (req, res) => {
         status: "Running",
         endpoints: {
             pair: "/pair",
-            validate: "/validate"
+            validate: "/validate",
+            execute: "/execute"
         }
     });
 });
