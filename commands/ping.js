@@ -7,11 +7,12 @@ export default {
     description: "Check bot speed and system status.",
     category: "General",
 
-    async execute(sock, msg) {
+    async execute({ args, sessionId }) {
 
-        const start = Date.now();
+        const start = performance.now();
 
-        const latency = Date.now() - start;
+        // Simulate execution time
+        const latency = (performance.now() - start).toFixed(2);
 
         const uptime = process.uptime();
 
@@ -58,12 +59,10 @@ v1.0.0
 
 Powered by Kenya-Ultra 💚`;
 
-        await sock.sendMessage(
-            msg.key.remoteJid,
-            {
-                text: message
-            }
-        );
+        return {
+            type: "text",
+            text: message
+        };
 
     }
 
