@@ -1,5 +1,5 @@
 import Reply from "../utils/reply.js";
-import { getCommands } from "./index.js";
+import { getCommands } from "./commandStore.js";
 
 export default {
     name: "menu",
