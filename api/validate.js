@@ -13,27 +13,22 @@ router.post("/", async (req, res) => {
 
             return res.status(400).json({
                 success: false,
-                valid: false,
                 message: "SESSION_ID is required."
             });
 
         }
 
-        const creds = decodeSession(sessionId);
+        const auth = decodeSession(sessionId);
 
         return res.status(200).json({
 
             success: true,
-            valid: true,
-            message: "SESSION_ID verified successfully.",
+
+            auth,
 
             client: {
-                id: creds.me?.id || null,
-                name: creds.me?.name || null
-            },
-
-            runtime: {
-                auth: creds
+                id: auth.creds?.me?.id || null,
+                name: auth.creds?.me?.name || null
             }
 
         });
@@ -45,7 +40,6 @@ router.post("/", async (req, res) => {
         return res.status(401).json({
 
             success: false,
-            valid: false,
             message: "Invalid SESSION_ID."
 
         });
