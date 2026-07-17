@@ -5,7 +5,7 @@ export default {
     description: "Display the Kenya-Ultra command menu.",
     category: "General",
 
-    async execute(sock, msg) {
+    async execute({ args, sessionId }) {
 
         const commands = getCommands();
 
@@ -38,7 +38,7 @@ Welcome to Kenya-Ultra
             grouped[category]
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .forEach(cmd => {
-                    menu += `• .${cmd.name}\n`;
+                    menu += `• .${cmd.name} — ${cmd.description}\n`;
                 });
 
             menu += "\n";
@@ -54,12 +54,10 @@ Welcome to Kenya-Ultra
 
 Powered by Kenya-Ultra 💚`;
 
-        await sock.sendMessage(
-            msg.key.remoteJid,
-            {
-                text: menu
-            }
-        );
+        return {
+            type: "text",
+            text: menu
+        };
 
     }
 
