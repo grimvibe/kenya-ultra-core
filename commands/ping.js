@@ -1,5 +1,6 @@
 import os from "os";
 import process from "process";
+import Reply from "../utils/reply.js";
 import { getCommands } from "./index.js";
 
 export default {
@@ -7,12 +8,7 @@ export default {
     description: "Check bot speed and system status.",
     category: "General",
 
-    async execute({ args, sessionId }) {
-
-        const start = performance.now();
-
-        // Simulate execution time
-        const latency = (performance.now() - start).toFixed(2);
+    async execute(message) {
 
         const uptime = process.uptime();
 
@@ -27,42 +23,41 @@ export default {
 
         const commandCount = getCommands().length;
 
-        const message = `🏓 *Kenya-Ultra Diagnostics*
+        const diagnostics = `🏓 *Kenya-Ultra Diagnostics*
 
 ━━━━━━━━━━━━━━
 
-⚡ *Response Time*
-${latency} ms
+👤 User
+${message.pushName || "Unknown"}
 
-🖥 *Platform*
-${os.platform()} (${os.arch()})
-
-💻 *Node.js*
-${process.version}
-
-⏳ *Uptime*
-${hours}h ${minutes}m ${seconds}s
-
-💾 *Memory Usage*
-${usedMB} MB / ${totalMB} MB
-
-📦 *Loaded Commands*
-${commandCount}
-
-🟢 *Core Status*
+⚡ Response
 Online
 
-🚀 *Kenya-Ultra Version*
-v1.0.0
+🖥 Platform
+${os.platform()} (${os.arch()})
+
+💻 Node.js
+${process.version}
+
+⏳ Uptime
+${hours}h ${minutes}m ${seconds}s
+
+💾 Memory
+${usedMB} MB / ${totalMB} MB
+
+📦 Commands
+${commandCount}
+
+🟢 Core Status
+Online
+
+🚀 Kenya-Ultra v1.0.0
 
 ━━━━━━━━━━━━━━
 
 Powered by Kenya-Ultra 💚`;
 
-        return {
-            type: "text",
-            text: message
-        };
+        return Reply.text(diagnostics);
 
     }
 
