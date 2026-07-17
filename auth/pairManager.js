@@ -8,12 +8,16 @@ import jobManager from "./jobManager.js";
 
 export async function generatePair(phone, jobId) {
     const sessionId = generateSessionId();
-    const sessionFolder = createSession(sessionId);
+
+    // Metadata bookkeeping only — auth state itself now lives in
+    // memory (see auth/memoryAuthState.js), not on disk.
+    createSession(sessionId);
 
     return new Promise((resolve, reject) => {
         let codeSettled = false;
         let pairCode = null;
         let sock = null;
+        let authState = null;
 
         // Prevent sending SESSION_ID multiple times
         let sessionDelivered = false;
@@ -51,9 +55,13 @@ export async function generatePair(phone, jobId) {
         };
 
         const connect = async () => {
-            sock = await createSocket(sessionFolder);
+            // Reuse the same authState across reconnect attempts so
+            // identity keys generated on the first attempt survive.
+            const created = await createSocket(authState);
+            sock = created.sock;
+            authState = created.authState;
 
-            if (!sock.authState?.creds?.registered && !pairCode) {
+            if (!authState.state.creds?.registered && !pairCode) {
                 (async () => {
                     try {
                         await new Promise((r) => setTimeout(r, 3000));
@@ -97,7 +105,9 @@ export async function generatePair(phone, jobId) {
 
                     sessionDelivered = true;
 
-                    const sessionString = encodeSession(sock.authState.creds);
+                    // Full snapshot — creds AND keys — so the client
+                    // gets everything Baileys generated during pairing.
+                    const sessionString = encodeSession(authState.getSnapshot());
 
                     await messageSender.sendSessionId(
                         sock,
