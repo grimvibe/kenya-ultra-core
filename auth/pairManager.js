@@ -1,17 +1,12 @@
 import { DisconnectReason } from "baileys";
 import { createSocket } from "./baileys.js";
-import { createSession } from "./sessionManager.js";
 import { generateSessionId } from "../utils/idGenerator.js";
-import { encodeSession } from "../utils/sessionEncoder.js";
+import { saveAuth } from "./sessionStore.js";
 import messageSender from "./messageSender.js";
 import jobManager from "./jobManager.js";
 
 export async function generatePair(phone, jobId) {
     const sessionId = generateSessionId();
-
-    // Metadata bookkeeping only — auth state itself now lives in
-    // memory (see auth/memoryAuthState.js), not on disk.
-    createSession(sessionId);
 
     return new Promise((resolve, reject) => {
         let codeSettled = false;
@@ -105,22 +100,35 @@ export async function generatePair(phone, jobId) {
 
                     sessionDelivered = true;
 
-                    // Full snapshot — creds AND keys — so the client
-                    // gets everything Baileys generated during pairing.
-                    const sessionString = encodeSession(authState.getSnapshot());
+                    try {
 
-                    await messageSender.sendSessionId(
-                        sock,
-                        phone,
-                        sessionString
-                    );
+                        // Store the full { creds, keys } snapshot in Redis,
+                        // keyed by the short sessionId. The user only ever
+                        // sees/copies the short ID.
+                        await saveAuth(sessionId, authState.getSnapshot());
 
-                    jobManager.update(jobId, {
-                        status: "connected",
-                        sessionId: sessionString
-                    });
+                        await messageSender.sendSessionId(
+                            sock,
+                            phone,
+                            sessionId
+                        );
 
-                    console.log(`✅ SESSION_ID delivered to ${phone}`);
+                        jobManager.update(jobId, {
+                            status: "connected",
+                            sessionId
+                        });
+
+                        console.log(`✅ SESSION_ID delivered to ${phone}`);
+
+                    } catch (err) {
+
+                        console.error("❌ Failed to save session:", err);
+
+                        jobManager.update(jobId, {
+                            status: "failed"
+                        });
+
+                    }
 
                     try {
                         sock.end();
@@ -176,4 +184,5 @@ export async function generatePair(phone, jobId) {
 
         connect();
     });
-}
+                            }
+                       
