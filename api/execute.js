@@ -74,7 +74,7 @@ router.post("/", async (req, res) => {
 
         }
 
-        const reply = await command.execute({
+        const result = await command.execute({
 
             sessionId,
 
@@ -92,13 +92,10 @@ router.post("/", async (req, res) => {
 
         });
 
-        return res.json({
-
-            success: true,
-
-            reply
-
-        });
+        // command.execute() already returns { success, reply } via
+        // the Reply.* helpers — forward it directly instead of
+        // wrapping it in another { success, reply } layer.
+        return res.json(result);
 
     } catch (error) {
 
@@ -117,3 +114,4 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
+            
