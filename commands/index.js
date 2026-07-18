@@ -10,68 +10,131 @@ function withTimeout(promise, ms, label) {
     return Promise.race([
         promise,
         new Promise((_, reject) =>
-            setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms)
+            setTimeout(
+                () => reject(new Error(`${label} timed out after ${ms}ms`)),
+                ms
+            )
         ),
     ]);
+}
+
+// Recursively collect all command files
+function getCommandFiles(dir) {
+
+    let files = [];
+
+    const entries = fs.readdirSync(dir, {
+        withFileTypes: true
+    });
+
+    for (const entry of entries) {
+
+        const fullPath = path.join(dir, entry.name);
+
+        if (entry.isDirectory()) {
+
+            files.push(...getCommandFiles(fullPath));
+
+        } else if (
+            entry.name.endsWith(".js") &&
+            entry.name !== "index.js" &&
+            entry.name !== "commandStore.js"
+        ) {
+
+            files.push(fullPath);
+
+        }
+
+    }
+
+    return files;
+
 }
 
 async function loadCommands() {
 
     commands.clear();
 
-    const files = fs
-        .readdirSync(__dirname)
-        .filter(file =>
-            file.endsWith(".js") &&
-            file !== "index.js" &&
-            file !== "commandStore.js"
-        );
+    const files = getCommandFiles(__dirname);
 
     for (const file of files) {
 
         try {
 
             const importUrl =
-                pathToFileURL(path.join(__dirname, file)).href +
+                pathToFileURL(file).href +
                 `?update=${Date.now()}`;
 
             const module = await withTimeout(
                 import(importUrl),
                 8000,
-                `import(${file})`
+                `import(${path.basename(file)})`
             );
 
             const command = module.default;
 
-            if (!command?.name || typeof command.execute !== "function") {
-                console.warn(`⚠️ Skipping invalid command: ${file}`);
+            if (
+                !command?.name ||
+                typeof command.execute !== "function"
+            ) {
+
+                console.warn(
+                    `⚠️ Skipping invalid command: ${path.relative(__dirname, file)}`
+                );
+
                 continue;
+
             }
 
-            commands.set(command.name.toLowerCase(), command);
+            commands.set(
+                command.name.toLowerCase(),
+                command
+            );
 
-            console.log(`✅ Loaded command: ${command.name}`);
+            console.log(
+                `✅ Loaded command: ${command.name} (${path.relative(__dirname, file)})`
+            );
 
         } catch (err) {
 
-            console.error(`❌ Failed to load ${file}`);
+            console.error(
+                `❌ Failed to load ${path.relative(__dirname, file)}`
+            );
+
             console.error(err);
 
         }
 
     }
 
-    console.log(`🚀 ${commands.size} command(s) loaded.`);
+    console.log(
+        `🚀 ${commands.size} command(s) loaded.`
+    );
 
 }
 
-// Re-export so anything that used to import these from index.js still works
-export { getCommand, getCommands } from "./commandStore.js";
+export {
+    getCommand,
+    getCommands
+} from "./commandStore.js";
+
 export default commands;
 
 try {
-    await withTimeout(loadCommands(), 20000, "loadCommands()");
+
+    await withTimeout(
+        loadCommands(),
+        20000,
+        "loadCommands()"
+    );
+
 } catch (err) {
-    console.error("❌ loadCommands() failed or hung:", err.message);
+
+    console.error(
+        "❌ loadCommands() failed or hung:",
+        err.message
+    );
+
     process.exit(1);
-}
+
+    }
