@@ -1,4 +1,5 @@
 import axios from "axios";
+import { BufferJSON } from "baileys";
 
 const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
 const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
@@ -58,7 +59,10 @@ export async function saveAuth(sessionId, snapshot) {
     await redisRequest([
         "set",
         `session:${sessionId}`,
-        JSON.stringify(snapshot)
+        // BufferJSON.replacer correctly handles both Buffer and
+        // Uint8Array instances — plain JSON.stringify silently
+        // mangles Uint8Array into a useless indexed object.
+        JSON.stringify(snapshot, BufferJSON.replacer)
     ]);
 }
 
