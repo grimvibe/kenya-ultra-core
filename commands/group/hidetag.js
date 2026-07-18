@@ -9,34 +9,59 @@ export default {
     async execute(ctx) {
 
         const {
-            sock,
-            msg,
-            Reply,
             isGroup,
-            isAdmin
+            isAdmin,
+            groupMetadata
         } = ctx;
 
         if (!isGroup) {
-            return Reply.text("❌ This command can only be used in groups.");
+
+            return {
+                success: false,
+                reply: {
+                    text: "❌ This command can only be used in groups."
+                }
+            };
+
         }
 
         if (!isAdmin) {
-            return Reply.text("❌ Only group admins can use this command.");
+
+            return {
+                success: false,
+                reply: {
+                    text: "❌ Only group admins can use this command."
+                }
+            };
+
         }
 
-        const metadata = await sock.groupMetadata(msg.key.remoteJid);
+        if (!groupMetadata) {
 
-        const mentions = metadata.participants.map(
-            p => p.id
-        );
+            return {
+                success: false,
+                reply: {
+                    text: "❌ Failed to fetch group members."
+                }
+            };
 
-        await Reply.message({
+        }
 
-            text: "‎",
+        return {
 
-            mentions
+            success: true,
 
-        });
+            reply: {
+
+                text: "‎",
+
+                mentions: groupMetadata.participants.map(
+                    p => p.id
+                )
+
+            }
+
+        };
 
     }
 
