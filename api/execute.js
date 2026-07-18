@@ -31,6 +31,7 @@ router.post("/", async (req, res) => {
 
         }
 
+        // Validate SESSION_ID
         const auth = await loadAuth(sessionId);
 
         if (!auth) {
@@ -44,6 +45,7 @@ router.post("/", async (req, res) => {
 
         const PREFIX = ".";
 
+        // Ignore non-commands
         if (!message.text.startsWith(PREFIX)) {
 
             return res.json({
@@ -58,33 +60,32 @@ router.post("/", async (req, res) => {
             .trim()
             .split(/\s+/);
 
-        const commandName =
-            parts.shift().toLowerCase();
-
+        const commandName = parts.shift().toLowerCase();
         const args = parts;
 
-        const command =
-            getCommand(commandName);
+        const command = getCommand(commandName);
 
         if (!command) {
 
             return res.status(404).json({
-
                 success: false,
-
                 message: "Unknown command."
-
             });
 
         }
 
-        const ctx = {
+        // Execute command
+        const result = await command.execute({
 
             sessionId,
 
             args,
 
-            message,
+            // Full WhatsApp message (contains mentionedJid,
+            // quoted messages, contextInfo, etc.)
+            message: message.message,
+
+            text: message.text,
 
             sender: message.sender,
 
@@ -94,33 +95,25 @@ router.post("/", async (req, res) => {
 
             isGroup: message.isGroup,
 
-            isAdmin: message.isAdmin,
+            isAdmin: message.isAdmin || false,
 
-            isBotAdmin: message.isBotAdmin,
+            isBotAdmin: message.isBotAdmin || false,
 
-            groupMetadata: message.groupMetadata
+            groupMetadata: message.groupMetadata || null
 
-        };
-
-        const result =
-            await command.execute(ctx);
+        });
 
         return res.json(result);
 
     } catch (error) {
 
-        console.error(
-            "EXECUTE API ERROR:",
-            error
-        );
+        console.error("EXECUTE API ERROR:", error);
 
         return res.status(500).json({
 
             success: false,
 
-            message:
-                error.message ||
-                "Internal Server Error"
+            message: error.message || "Internal Server Error"
 
         });
 
