@@ -1,11 +1,28 @@
 export default function getMention(message) {
 
-    const mentions =
-        message.message?.extendedTextMessage
-            ?.contextInfo?.mentionedJid || [];
+    if (!message) return null;
 
-    return mentions.length
-        ? mentions[0]
-        : null;
+    // Normal text message with mentions
+    if (
+        message.extendedTextMessage?.contextInfo?.mentionedJid?.length
+    ) {
+        return message.extendedTextMessage.contextInfo.mentionedJid[0];
+    }
+
+    // Image caption with mentions
+    if (
+        message.imageMessage?.contextInfo?.mentionedJid?.length
+    ) {
+        return message.imageMessage.contextInfo.mentionedJid[0];
+    }
+
+    // Video caption with mentions
+    if (
+        message.videoMessage?.contextInfo?.mentionedJid?.length
+    ) {
+        return message.videoMessage.contextInfo.mentionedJid[0];
+    }
+
+    return null;
 
 }
