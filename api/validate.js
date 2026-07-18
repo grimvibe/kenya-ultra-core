@@ -1,5 +1,5 @@
 import express from "express";
-import { decodeSession } from "../utils/sessionEncoder.js";
+import { loadAuth } from "../auth/sessionStore.js";
 
 const router = express.Router();
 
@@ -18,7 +18,16 @@ router.post("/", async (req, res) => {
 
         }
 
-        const auth = decodeSession(sessionId);
+        const auth = await loadAuth(sessionId);
+
+        if (!auth) {
+
+            return res.status(401).json({
+                success: false,
+                message: "Invalid SESSION_ID."
+            });
+
+        }
 
         return res.status(200).json({
 
