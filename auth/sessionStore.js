@@ -1,3 +1,5 @@
+import axios from "axios";
+
 const REST_URL = process.env.UPSTASH_REDIS_REST_URL;
 const REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -9,24 +11,42 @@ if (!REST_URL || !REST_TOKEN) {
     );
 }
 
+const client = axios.create({
+    baseURL: REST_URL,
+    headers: {
+        Authorization: `Bearer ${REST_TOKEN}`
+    },
+    // axios uses Node's classic http/https modules by default, not
+    // undici's fetch — this sidesteps the "HTTP/2 frameError" issue
+    // some hosts/networks trigger with Node's native fetch().
+    timeout: 10000
+});
+
 async function redisRequest(command) {
 
-    const response = await fetch(
-        `${REST_URL}/${command.map(encodeURIComponent).join("/")}`,
-        {
-            headers: {
-                Authorization: `Bearer ${REST_TOKEN}`
-            }
+    try {
+
+        const path = "/" + command.map(encodeURIComponent).join("/");
+
+        const { data } = await client.get(path);
+
+        if (data.error) {
+            throw new Error(`Redis error: ${data.error}`);
         }
-    );
 
-    const data = await response.json();
+        return data.result;
 
-    if (data.error) {
-        throw new Error(`Redis error: ${data.error}`);
+    } catch (error) {
+
+        if (error.response) {
+            throw new Error(
+                `Redis request failed: ${error.response.status} ${JSON.stringify(error.response.data)}`
+            );
+        }
+
+        throw error;
+
     }
-
-    return data.result;
 
 }
 
