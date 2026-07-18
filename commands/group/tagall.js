@@ -2,48 +2,75 @@ export default {
 
     name: "tagall",
 
-    description: "Mention all group members.",
+    description: "Mention all members in the group.",
 
     category: "Group",
 
     async execute(ctx) {
 
         const {
-            sock,
-            msg,
-            Reply,
             isGroup,
-            isAdmin
+            isAdmin,
+            groupMetadata
         } = ctx;
 
         if (!isGroup) {
-            return Reply.text("❌ This command can only be used in groups.");
+
+            return {
+                success: false,
+                reply: {
+                    text: "❌ This command can only be used in groups."
+                }
+            };
+
         }
 
         if (!isAdmin) {
-            return Reply.text("❌ Only group admins can use this command.");
+
+            return {
+                success: false,
+                reply: {
+                    text: "❌ Only group admins can use this command."
+                }
+            };
+
         }
 
-        const metadata = await sock.groupMetadata(msg.key.remoteJid);
+        if (!groupMetadata) {
 
-        const mentions = metadata.participants.map(
-            p => p.id
-        );
+            return {
+                success: false,
+                reply: {
+                    text: "❌ Failed to fetch group members."
+                }
+            };
 
+        }
+
+        const mentions = [];
         let text = "📢 *Attention Everyone!*\n\n";
 
-        for (const member of metadata.participants) {
+        for (const member of groupMetadata.participants) {
 
-            text += `➜ @${member.id.split("@")[0]}\n`;
+            mentions.push(member.id);
+
+            text += `• @${member.id.split("@")[0]}\n`;
 
         }
 
-        await Reply.message({
+        return {
 
-            text,
-            mentions
+            success: true,
 
-        });
+            reply: {
+
+                text,
+
+                mentions
+
+            }
+
+        };
 
     }
 
