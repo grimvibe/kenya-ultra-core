@@ -1,6 +1,6 @@
 import Reply from "../../utils/reply.js";
-import getMention from "../../utils/getMention.js";
 import warnService from "../../services/warnService.js";
+import getMention from "../../utils/getMention.js";
 
 export default {
 
@@ -10,38 +10,53 @@ export default {
 
     category: "Group",
 
-    async execute(message) {
+    async execute(ctx) {
 
-        if (!message.isGroup)
-            return Reply.error("This command only works in groups.");
+        const {
+            isGroup,
+            isAdmin,
+            chat,
+            args,
+            message
+        } = ctx;
 
-        if (!message.isAdmin)
+        if (!isGroup)
+            return Reply.error("This command can only be used in groups.");
+
+        if (!isAdmin)
             return Reply.error("Only group admins can use this command.");
 
-        const user = getMention(message);
+        const target = getMention(message);
 
-        if (!user)
-            return Reply.error("Mention a user.\nExample:\n.warn @user Spamming");
+        if (!target)
+            return Reply.error(
+                "Mention a user.\nExample:\n.warn @user Spamming"
+            );
 
         const reason =
-            message.args.slice(1).join(" ") || "No reason";
+            args.slice(1).join(" ") || "No reason provided.";
 
         const data = await warnService.add(
-            message.chat,
-            user,
+            chat,
+            target,
             reason
         );
 
         return Reply.text(
+
 `⚠️ *Warning Issued*
 
-👤 @${user.split("@")[0]}
+👤 User:
+@${target.split("@")[0]}
 
 📝 Reason:
 ${reason}
 
 📊 Warnings:
-${data.count}/3`
+${data.count}/3`,
+
+            [target]
+
         );
 
     }
