@@ -1,115 +1,61 @@
 class Reply {
 
-    static text(text) {
+    static text(text, mentions = []) {
 
         return {
+
             success: true,
+
             reply: {
-                type: "text",
-                text
-            }
-        };
-
-    }
-
-    static image(image, caption = "") {
-
-        return {
-            success: true,
-            reply: {
-                type: "image",
-                image,
-                caption
-            }
-        };
-
-    }
-
-    static video(video, caption = "") {
-
-        return {
-            success: true,
-            reply: {
-                type: "video",
-                video,
-                caption
-            }
-        };
-
-    }
-
-    static audio(audio) {
-
-        return {
-            success: true,
-            reply: {
-                type: "audio",
-                audio
-            }
-        };
-
-    }
-
-    static document(document, fileName) {
-
-        return {
-            success: true,
-            reply: {
-                type: "document",
-                document,
-                fileName
-            }
-        };
-
-    }
-
-    static sticker(sticker) {
-
-        return {
-            success: true,
-            reply: {
-                type: "sticker",
-                sticker
-            }
-        };
-
-    }
-
-    static buttons(text, buttons = []) {
-
-        return {
-            success: true,
-            reply: {
-                type: "buttons",
                 text,
-                buttons
+                mentions
             }
+
         };
 
     }
 
-    static list(title, text, sections = []) {
+    static error(text) {
 
         return {
-            success: true,
-            reply: {
-                type: "list",
-                title,
-                text,
-                sections
-            }
-        };
 
-    }
-
-    static error(message) {
-
-        return {
             success: false,
+
             reply: {
-                type: "text",
-                text: `❌ ${message}`
+                text: `❌ ${text}`,
+                mentions: []
             }
+
+        };
+
+    }
+
+    static success(text) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                text: `✅ ${text}`,
+                mentions: []
+            }
+
+        };
+
+    }
+
+    static info(text) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                text: `ℹ️ ${text}`,
+                mentions: []
+            }
+
         };
 
     }
