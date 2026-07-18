@@ -1,6 +1,6 @@
 import express from "express";
 import { getCommand } from "../commands/index.js";
-import { decodeSession } from "../utils/sessionEncoder.js";
+import { loadAuth } from "../auth/sessionStore.js";
 
 const router = express.Router();
 
@@ -32,11 +32,9 @@ router.post("/", async (req, res) => {
         }
 
         // Validate SESSION_ID
-        try {
+        const auth = await loadAuth(sessionId);
 
-            decodeSession(sessionId);
-
-        } catch {
+        if (!auth) {
 
             return res.status(401).json({
                 success: false,
