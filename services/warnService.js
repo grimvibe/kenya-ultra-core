@@ -1,14 +1,14 @@
-import redis from "../database/redis.js";
-
-function key(groupId, userId) {
-    return `warn:${groupId}:${userId}`;
-}
+import {
+    saveWarn,
+    loadWarn,
+    deleteWarn
+} from "../auth/sessionStore.js";
 
 class WarnService {
 
     async add(groupId, userId, reason = "No reason") {
 
-        const data = await this.get(groupId, userId);
+        const data = await loadWarn(groupId, userId);
 
         data.count++;
 
@@ -17,10 +17,7 @@ class WarnService {
             date: Date.now()
         });
 
-        await redis.set(
-            key(groupId, userId),
-            JSON.stringify(data)
-        );
+        await saveWarn(groupId, userId, data);
 
         return data;
 
@@ -28,26 +25,13 @@ class WarnService {
 
     async get(groupId, userId) {
 
-        const raw = await redis.get(
-            key(groupId, userId)
-        );
-
-        if (!raw) {
-
-            return {
-                count: 0,
-                reasons: []
-            };
-
-        }
-
-        return JSON.parse(raw);
+        return await loadWarn(groupId, userId);
 
     }
 
     async remove(groupId, userId) {
 
-        const data = await this.get(groupId, userId);
+        const data = await loadWarn(groupId, userId);
 
         if (data.count > 0) {
 
@@ -57,10 +41,7 @@ class WarnService {
 
         }
 
-        await redis.set(
-            key(groupId, userId),
-            JSON.stringify(data)
-        );
+        await saveWarn(groupId, userId, data);
 
         return data;
 
@@ -68,9 +49,7 @@ class WarnService {
 
     async reset(groupId, userId) {
 
-        await redis.del(
-            key(groupId, userId)
-        );
+        await deleteWarn(groupId, userId);
 
     }
 
