@@ -31,7 +31,6 @@ router.post("/", async (req, res) => {
 
         }
 
-        // Validate SESSION_ID
         const auth = await loadAuth(sessionId);
 
         if (!auth) {
@@ -59,22 +58,27 @@ router.post("/", async (req, res) => {
             .trim()
             .split(/\s+/);
 
-        const commandName = parts.shift().toLowerCase();
+        const commandName =
+            parts.shift().toLowerCase();
 
         const args = parts;
 
-        const command = getCommand(commandName);
+        const command =
+            getCommand(commandName);
 
         if (!command) {
 
             return res.status(404).json({
+
                 success: false,
+
                 message: "Unknown command."
+
             });
 
         }
 
-        const result = await command.execute({
+        const ctx = {
 
             sessionId,
 
@@ -88,24 +92,35 @@ router.post("/", async (req, res) => {
 
             pushName: message.pushName,
 
-            isGroup: message.isGroup
+            isGroup: message.isGroup,
 
-        });
+            isAdmin: message.isAdmin,
 
-        // command.execute() already returns { success, reply } via
-        // the Reply.* helpers — forward it directly instead of
-        // wrapping it in another { success, reply } layer.
+            isBotAdmin: message.isBotAdmin,
+
+            groupMetadata: message.groupMetadata
+
+        };
+
+        const result =
+            await command.execute(ctx);
+
         return res.json(result);
 
     } catch (error) {
 
-        console.error("EXECUTE API ERROR:", error);
+        console.error(
+            "EXECUTE API ERROR:",
+            error
+        );
 
         return res.status(500).json({
 
             success: false,
 
-            message: error.message || "Internal Server Error"
+            message:
+                error.message ||
+                "Internal Server Error"
 
         });
 
@@ -114,4 +129,3 @@ router.post("/", async (req, res) => {
 });
 
 export default router;
-            
