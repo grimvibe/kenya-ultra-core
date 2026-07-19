@@ -46,8 +46,9 @@ export default {
 
             target,
 
-            reply: Reply.success(
-                `Promoted @${target.split("@")[0]} to admin.`
+            reply: Reply.text(
+                `✅ Promoted @${target.split("@")[0]} to admin.`,
+                [target]
             )
 
         };
