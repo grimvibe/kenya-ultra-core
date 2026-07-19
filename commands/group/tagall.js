@@ -1,8 +1,10 @@
+import Reply from "../../utils/reply.js";
+
 export default {
 
     name: "tagall",
 
-    description: "Mention all members in the group.",
+    description: "Mention every member in the group.",
 
     category: "Group",
 
@@ -14,63 +16,81 @@ export default {
             groupMetadata
         } = ctx;
 
-        if (!isGroup) {
+        if (!isGroup)
+            return Reply.error(
+                "This command can only be used in groups."
+            );
 
-            return {
-                success: false,
-                reply: {
-                    text: "❌ This command can only be used in groups."
-                }
-            };
+        if (!isAdmin)
+            return Reply.error(
+                "Only group admins can use this command."
+            );
 
-        }
+        if (!groupMetadata)
+            return Reply.error(
+                "Unable to fetch group information."
+            );
 
-        if (!isAdmin) {
+        const participants = groupMetadata.participants;
 
-            return {
-                success: false,
-                reply: {
-                    text: "❌ Only group admins can use this command."
-                }
-            };
+        const admins = [];
+        const members = [];
 
-        }
+        for (const participant of participants) {
 
-        if (!groupMetadata) {
+            if (participant.admin) {
 
-            return {
-                success: false,
-                reply: {
-                    text: "❌ Failed to fetch group members."
-                }
-            };
+                admins.push(participant);
 
-        }
+            } else {
 
-        const mentions = [];
-        let text = "📢 *Attention Everyone!*\n\n";
-
-        for (const member of groupMetadata.participants) {
-
-            mentions.push(member.id);
-
-            text += `• @${member.id.split("@")[0]}\n`;
-
-        }
-
-        return {
-
-            success: true,
-
-            reply: {
-
-                text,
-
-                mentions
+                members.push(participant);
 
             }
 
-        };
+        }
+
+        let text = `╭⊷ 📢 *TAG ALL*\n`;
+        text += `│\n`;
+        text += `├⊷ 🏷️ *Group:* ${groupMetadata.subject}\n`;
+        text += `├⊷ 👥 *Members:* ${participants.length}\n`;
+        text += `│\n`;
+
+        text += `├⊷ 👑 *ADMINS* (${admins.length})\n`;
+
+        let count = 1;
+
+        for (const admin of admins) {
+
+            const icon =
+                admin.admin === "superadmin"
+                    ? "⭐"
+                    : "🔰";
+
+            text += `├⊷ ${String(count).padStart(2, "0")}. ${icon} @${admin.id.split("@")[0]}\n`;
+
+            count++;
+
+        }
+
+        text += `│\n`;
+        text += `├⊷ 👤 *MEMBERS* (${members.length})\n`;
+
+        for (const member of members) {
+
+            text += `├⊷ ${String(count).padStart(2, "0")}. @${member.id.split("@")[0]}\n`;
+
+            count++;
+
+        }
+
+        text += `│\n`;
+        text += `╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`;
+
+        return Reply.text(
+            text,
+            participants.map(p => p.id)
+        );
 
     }
 
