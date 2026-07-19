@@ -1,8 +1,11 @@
 import Reply from "../../utils/reply.js";
 
 export default {
+
     name: "add",
+
     description: "Add a member to the group.",
+
     category: "Group",
 
     async execute(ctx) {
@@ -11,8 +14,6 @@ export default {
             isGroup,
             isAdmin,
             isBotAdmin,
-            sock,
-            chat,
             args
         } = ctx;
 
@@ -43,27 +44,19 @@ export default {
                 "Use the international format.\nExample:\n254712345678"
             );
 
-        const jid = number + "@s.whatsapp.net";
+        const target = number + "@s.whatsapp.net";
 
-        try {
+        return {
 
-            await sock.groupParticipantsUpdate(
-                chat,
-                [jid],
-                "add"
-            );
+            action: "add",
 
-            return Reply.success(
-                `Added ${number} successfully.`
-            );
+            target,
 
-        } catch (err) {
+            reply: Reply.success(
+                `Successfully added ${number}.`
+            )
 
-            return Reply.error(
-                err.message || "Failed to add user."
-            );
-
-        }
+        };
 
     }
 
