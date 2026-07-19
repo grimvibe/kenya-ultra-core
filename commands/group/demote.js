@@ -5,7 +5,7 @@ export default {
 
     name: "demote",
 
-    description: "Remove admin rights from a member.",
+    description: "Remove admin rights from a group member.",
 
     category: "Group",
 
@@ -30,7 +30,7 @@ export default {
 
         if (!isBotAdmin)
             return Reply.error(
-                "I need to be a group admin first."
+                "I need to be an admin first."
             );
 
         const target = getMention(message);
@@ -46,8 +46,9 @@ export default {
 
             target,
 
-            reply: Reply.success(
-                `Demoted @${target.split("@")[0]}.`
+            reply: Reply.text(
+                `✅ Demoted @${target.split("@")[0]}.`,
+                [target]
             )
 
         };
