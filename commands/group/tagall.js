@@ -4,16 +4,20 @@ export default {
 
     name: "tagall",
 
-    description: "Mention every member in the group.",
+    description: "Mention everyone in the group.",
 
     category: "Group",
 
     async execute(ctx) {
 
         const {
+
             isGroup,
+
             isAdmin,
+
             groupMetadata
+
         } = ctx;
 
         if (!isGroup)
@@ -31,14 +35,17 @@ export default {
                 "Unable to fetch group information."
             );
 
-        const participants = groupMetadata.participants;
-
+        const owner = [];
         const admins = [];
         const members = [];
 
-        for (const participant of participants) {
+        for (const participant of groupMetadata.participants) {
 
-            if (participant.admin) {
+            if (participant.admin === "superadmin") {
+
+                owner.push(participant);
+
+            } else if (participant.admin === "admin") {
 
                 admins.push(participant);
 
@@ -53,43 +60,73 @@ export default {
         let text = `╭⊷ 📢 *TAG ALL*\n`;
         text += `│\n`;
         text += `├⊷ 🏷️ *Group:* ${groupMetadata.subject}\n`;
-        text += `├⊷ 👥 *Members:* ${participants.length}\n`;
+        text += `├⊷ 👥 *Members:* ${groupMetadata.participants.length}\n`;
         text += `│\n`;
-
-        text += `├⊷ 👑 *ADMINS* (${admins.length})\n`;
 
         let count = 1;
 
-        for (const admin of admins) {
+        // OWNER
+        if (owner.length) {
 
-            const icon =
-                admin.admin === "superadmin"
-                    ? "⭐"
-                    : "🔰";
+            text += `├━━━━━━━━━━━━━━\n`;
+            text += `├⊷ ⭐ *OWNER*\n`;
 
-            text += `├⊷ ${String(count).padStart(2, "0")}. ${icon} @${admin.id.split("@")[0]}\n`;
+            for (const user of owner) {
 
-            count++;
+                text += `├⊷ ${String(count).padStart(2, "0")}. ⭐ @${user.id.split("@")[0]}\n`;
 
-        }
+                count++;
 
-        text += `│\n`;
-        text += `├⊷ 👤 *MEMBERS* (${members.length})\n`;
+            }
 
-        for (const member of members) {
-
-            text += `├⊷ ${String(count).padStart(2, "0")}. @${member.id.split("@")[0]}\n`;
-
-            count++;
+            text += `│\n`;
 
         }
 
-        text += `│\n`;
+        // ADMINS
+        if (admins.length) {
+
+            text += `├━━━━━━━━━━━━━━\n`;
+            text += `├⊷ 👑 *ADMINS* (${admins.length})\n`;
+
+            for (const user of admins) {
+
+                text += `├⊷ ${String(count).padStart(2, "0")}. 🔰 @${user.id.split("@")[0]}\n`;
+
+                count++;
+
+            }
+
+            text += `│\n`;
+
+        }
+
+        // MEMBERS
+        if (members.length) {
+
+            text += `├━━━━━━━━━━━━━━\n`;
+            text += `├⊷ 👤 *MEMBERS* (${members.length})\n`;
+
+            for (const user of members) {
+
+                text += `├⊷ ${String(count).padStart(2, "0")}. @${user.id.split("@")[0]}\n`;
+
+                count++;
+
+            }
+
+            text += `│\n`;
+
+        }
+
         text += `╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`;
 
         return Reply.text(
+
             text,
-            participants.map(p => p.id)
+
+            groupMetadata.participants.map(p => p.id)
+
         );
 
     }
