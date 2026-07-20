@@ -14,16 +14,18 @@ export async function recoverViewOnce(ctx) {
 
     const quoted =
         message.extendedTextMessage.contextInfo.quotedMessage;
-    console.log("========== QUOTED MESSAGE ==========");
-console.dir(quoted, { depth: null });
-console.log("====================================");
+
+    console.log("\n==============================");
+    console.log("📦 QUOTED MESSAGE STRUCTURE");
+    console.log("==============================");
+
+    console.dir(quoted, { depth: null });
+
+    console.log("==============================\n");
 
     const isViewOnce =
-
         quoted.viewOnceMessage ||
-
         quoted.viewOnceMessageV2 ||
-
         quoted.viewOnceMessageV2Extension;
 
     if (!isViewOnce) {
@@ -35,7 +37,7 @@ console.log("====================================");
     }
 
     return Reply.info(
-        "View Once detected. Recovery engine coming next..."
+        "✅ View Once detected."
     );
 
 }
