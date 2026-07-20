@@ -5,37 +5,40 @@ export default {
 
     name: "moderation",
 
-    description: "Display moderation settings.",
+    description: "Display group moderation settings.",
 
     category: "Moderation",
 
     async execute(ctx) {
 
         if (!ctx.isGroup)
+
             return Reply.error(
-                "Group only command."
+                "This command can only be used in groups."
             );
 
         const settings =
             await getGroupSettings(ctx.chat);
 
-        return Reply.text(
+        const status = (feature) =>
+            feature.enabled ? "✅ ON" : "❌ OFF";
 
+        let text =
 `╭⊷ 🛡️ *GROUP MODERATION*
 │
-├⊷ 🚫 Anti-Link : ${settings.antilink ? "✅ ON" : "❌ OFF"}
-├⊷ 🤖 Anti-Bot : ${settings.antibot ? "✅ ON" : "❌ OFF"}
-├⊷ 👻 Anti-Delete : ${settings.antidelete ? "✅ ON" : "❌ OFF"}
-├⊷ ✏️ Anti-Edit : ${settings.antiedit ? "✅ ON" : "❌ OFF"}
-├⊷ 👁️ Anti-ViewOnce : ${settings.antiviewonce ? "✅ ON" : "❌ OFF"}
-├⊷ ⚡ Anti-Spam : ${settings.antispam ? "✅ ON" : "❌ OFF"}
-├⊷ 🤬 Anti-BadWord : ${settings.antibadword ? "✅ ON" : "❌ OFF"}
-├⊷ 👋 Welcome : ${settings.welcome ? "✅ ON" : "❌ OFF"}
-├⊷ 👋 Goodbye : ${settings.goodbye ? "✅ ON" : "❌ OFF"}
+├⊷ 🚫 Anti-Link : ${status(settings.antilink)}
+├⊷ 🤖 Anti-Bot : ${status(settings.antibot)}
+├⊷ 👻 Anti-Delete : ${status(settings.antidelete)}
+├⊷ ✏️ Anti-Edit : ${status(settings.antiedit)}
+├⊷ 👁️ Anti-ViewOnce : ${status(settings.antiviewonce)}
+├⊷ ⚡ Anti-Spam : ${status(settings.antispam)}
+├⊷ 🤬 Anti-BadWord : ${status(settings.antibadword)}
+├⊷ 👋 Welcome : ${status(settings.welcome)}
+├⊷ 👋 Goodbye : ${status(settings.goodbye)}
 │
-╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`
+╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`;
 
-        );
+        return Reply.text(text);
 
     }
 
