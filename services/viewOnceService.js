@@ -4,9 +4,11 @@ export async function recoverViewOnce(ctx) {
 
     const raw = ctx.rawMessage;
 
-console.log("\n========== RAW MESSAGE ==========");
-console.dir(raw, { depth: null });
-console.log("================================\n");
+    console.log("\n========== RAW MESSAGE ==========");
+    console.dir(raw, { depth: null });
+    console.log("================================\n");
+
+    const message = raw?.message;
 
     if (!message?.extendedTextMessage?.contextInfo?.quotedMessage) {
 
@@ -27,21 +29,6 @@ console.log("================================\n");
 
     console.log("==============================\n");
 
-    const isViewOnce =
-        quoted.viewOnceMessage ||
-        quoted.viewOnceMessageV2 ||
-        quoted.viewOnceMessageV2Extension;
-
-    if (!isViewOnce) {
-
-        return Reply.error(
-            "That message is not a View Once media."
-        );
-
-    }
-
-    return Reply.info(
-        "✅ View Once detected."
-    );
+    return Reply.info("Debug complete.");
 
 }
