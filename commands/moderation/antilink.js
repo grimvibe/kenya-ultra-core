@@ -4,7 +4,7 @@ export default {
 
     name: "antilink",
 
-    description: "Enable or disable Anti-Link.",
+    description: "Manage Anti-Link.",
 
     category: "Moderation",
 
@@ -14,9 +14,7 @@ export default {
 
             ctx,
 
-            "antilink",
-
-            "Anti-Link"
+            "antilink"
 
         );
 
