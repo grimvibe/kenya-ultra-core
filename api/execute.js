@@ -85,6 +85,8 @@ router.post("/", async (req, res) => {
             // quoted messages, contextInfo, etc.)
             message: message.message,
 
+rawMessage: message.rawMessage,
+
             text: message.text,
 
             sender: message.sender,
