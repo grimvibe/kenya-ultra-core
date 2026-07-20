@@ -4,10 +4,6 @@ export async function recoverViewOnce(ctx) {
 
     const raw = ctx.rawMessage;
 
-    console.log("\n========== RAW MESSAGE ==========");
-    console.dir(raw, { depth: null });
-    console.log("================================\n");
-
     const message = raw?.message;
 
     if (!message?.extendedTextMessage?.contextInfo?.quotedMessage) {
@@ -21,14 +17,10 @@ export async function recoverViewOnce(ctx) {
     const quoted =
         message.extendedTextMessage.contextInfo.quotedMessage;
 
-    console.log("\n==============================");
-    console.log("📦 QUOTED MESSAGE STRUCTURE");
-    console.log("==============================");
-
-    console.dir(quoted, { depth: null });
-
-    console.log("==============================\n");
-
-    return Reply.info("Debug complete.");
+    return Reply.text(
+        "📦 *Quoted Message Structure*\n\n```" +
+        JSON.stringify(quoted, null, 2).slice(0, 3500) +
+        "```"
+    );
 
 }
