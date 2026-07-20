@@ -2,7 +2,11 @@ import Reply from "../utils/reply.js";
 
 export async function recoverViewOnce(ctx) {
 
-    const message = ctx.message;
+    const raw = ctx.rawMessage;
+
+console.log("\n========== RAW MESSAGE ==========");
+console.dir(raw, { depth: null });
+console.log("================================\n");
 
     if (!message?.extendedTextMessage?.contextInfo?.quotedMessage) {
 
