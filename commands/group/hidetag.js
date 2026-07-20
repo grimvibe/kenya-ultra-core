@@ -1,67 +1,64 @@
+import Reply from "../../utils/reply.js";
+
 export default {
 
     name: "hidetag",
 
-    description: "Silently mention everyone.",
+    description: "Mention everyone silently.",
 
     category: "Group",
 
     async execute(ctx) {
 
         const {
+
             isGroup,
+
             isAdmin,
-            groupMetadata
+
+            isBotAdmin,
+
+            groupMetadata,
+
+            args
+
         } = ctx;
 
-        if (!isGroup) {
+        if (!isGroup)
+            return Reply.error(
+                "This command can only be used in groups."
+            );
 
-            return {
-                success: false,
-                reply: {
-                    text: "❌ This command can only be used in groups."
-                }
-            };
+        if (!isAdmin)
+            return Reply.error(
+                "Only admins can use this command."
+            );
 
-        }
+        if (!isBotAdmin)
+            return Reply.error(
+                "I need admin rights first."
+            );
 
-        if (!isAdmin) {
+        const message =
+            args.length
+                ? args.join(" ")
+                : "📢 Attention everyone!";
 
-            return {
-                success: false,
-                reply: {
-                    text: "❌ Only group admins can use this command."
-                }
-            };
+        return Reply.text(
 
-        }
+`╭⊷ 📢 *HIDETAG*
 
-        if (!groupMetadata) {
+│
 
-            return {
-                success: false,
-                reply: {
-                    text: "❌ Failed to fetch group members."
-                }
-            };
+├⊷ ${message}
 
-        }
+│
 
-        return {
+╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`,
 
-            success: true,
+groupMetadata.participants.map(p=>p.id)
 
-            reply: {
-
-                text: "‎",
-
-                mentions: groupMetadata.participants.map(
-                    p => p.id
-                )
-
-            }
-
-        };
+        );
 
     }
 
