@@ -74,36 +74,35 @@ router.post("/", async (req, res) => {
 
         }
 
-        // Execute command
         const result = await command.execute({
 
-            sessionId,
+    sessionId,
 
-            args,
+    args,
 
-            // Full WhatsApp message (contains mentionedJid,
-            // quoted messages, contextInfo, etc.)
-            message: message.message,
+    message: message.message,
 
-rawMessage: message.rawMessage,
+    rawMessage: message.rawMessage,
 
-            text: message.text,
+    sock: message.sock,
 
-            sender: message.sender,
+    text: message.text,
 
-            chat: message.chat,
+    sender: message.sender,
 
-            pushName: message.pushName,
+    chat: message.chat,
 
-            isGroup: message.isGroup,
+    pushName: message.pushName,
 
-            isAdmin: message.isAdmin || false,
+    isGroup: message.isGroup,
 
-            isBotAdmin: message.isBotAdmin || false,
+    isAdmin: message.isAdmin || false,
 
-            groupMetadata: message.groupMetadata || null
+    isBotAdmin: message.isBotAdmin || false,
 
-        });
+    groupMetadata: message.groupMetadata || null
+
+});
 
         return res.json(result);
 
