@@ -13,7 +13,6 @@ export default {
     async execute(ctx) {
 
         console.log("================================");
-        console.log("Socket available:", !!ctx.sock);
         console.log("Context keys:", Object.keys(ctx));
         console.log("================================");
 
