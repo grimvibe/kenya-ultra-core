@@ -1,22 +1,44 @@
 export default {
 
-    antilink: false,
+    antilink: {
+        enabled: false,
+        action: "delete"
+    },
 
-    antibot: false,
+    antibot: {
+        enabled: false,
+        action: "kick"
+    },
 
-    antidelete: false,
+    antispam: {
+        enabled: false,
+        action: "warn"
+    },
 
-    antiedit: false,
+    antibadword: {
+        enabled: false,
+        action: "warn"
+    },
 
-    antiviewonce: false,
+    antidelete: {
+        enabled: false
+    },
 
-    antispam: false,
+    antiedit: {
+        enabled: false
+    },
 
-    antibadword: false,
+    antiviewonce: {
+        enabled: false
+    },
 
-    welcome: false,
+    welcome: {
+        enabled: false
+    },
 
-    goodbye: false,
+    goodbye: {
+        enabled: false
+    },
 
     security: "low"
 
