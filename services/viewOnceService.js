@@ -14,6 +14,9 @@ export async function recoverViewOnce(ctx) {
 
     const quoted =
         message.extendedTextMessage.contextInfo.quotedMessage;
+    console.log("========== QUOTED MESSAGE ==========");
+console.dir(quoted, { depth: null });
+console.log("====================================");
 
     const isViewOnce =
 
