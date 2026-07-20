@@ -28,9 +28,6 @@ export default {
         enabled: false
     },
 
-    antiviewonce: {
-        enabled: false
-    },
 
     welcome: {
         enabled: false
