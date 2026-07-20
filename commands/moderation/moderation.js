@@ -30,7 +30,6 @@ export default {
 ├⊷ 🤖 Anti-Bot : ${status(settings.antibot)}
 ├⊷ 👻 Anti-Delete : ${status(settings.antidelete)}
 ├⊷ ✏️ Anti-Edit : ${status(settings.antiedit)}
-├⊷ 👁️ Anti-ViewOnce : ${status(settings.antiviewonce)}
 ├⊷ ⚡ Anti-Spam : ${status(settings.antispam)}
 ├⊷ 🤬 Anti-BadWord : ${status(settings.antibadword)}
 ├⊷ 👋 Welcome : ${status(settings.welcome)}
