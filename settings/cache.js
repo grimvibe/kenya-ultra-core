@@ -1,3 +1,3 @@
-const settingsCache = new Map();
+const cache = new Map();
 
-export default settingsCache;
+export default cache;
