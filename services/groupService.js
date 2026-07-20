@@ -58,13 +58,7 @@ const FEATURES = {
 
     },
 
-    antiviewonce: {
-
-        title: "Anti-ViewOnce",
-
-        supportsAction: false
-
-    },
+    
 
     welcome: {
 
