@@ -5,7 +5,11 @@ export async function getGroupSettings(groupId) {
 
     if (!cache.has(groupId)) {
 
-        cache.set(groupId, { ...defaults });
+        cache.set(groupId, {
+
+            ...defaults
+
+        });
 
     }
 
@@ -34,5 +38,17 @@ export async function toggleGroupSetting(groupId, key) {
     cache.set(groupId, settings);
 
     return settings[key];
+
+}
+
+export async function resetGroupSettings(groupId) {
+
+    cache.set(groupId, {
+
+        ...defaults
+
+    });
+
+    return cache.get(groupId);
 
 }
