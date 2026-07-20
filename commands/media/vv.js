@@ -1,4 +1,3 @@
-import Reply from "../../utils/reply.js";
 import { recoverViewOnce } from "../../services/viewOnceService.js";
 
 export default {
@@ -7,15 +6,18 @@ export default {
 
     aliases: ["once", "readonce"],
 
-    description: "Recover a View Once photo or video.",
+    description: "Recover View Once media.",
 
     category: "Media",
 
     async execute(ctx) {
 
-        const result = await recoverViewOnce(ctx);
+        console.log("================================");
+        console.log("Socket available:", !!ctx.sock);
+        console.log("Context keys:", Object.keys(ctx));
+        console.log("================================");
 
-        return result;
+        return await recoverViewOnce(ctx);
 
     }
 
