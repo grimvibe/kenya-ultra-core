@@ -17,6 +17,11 @@ export async function generatePair(phone, jobId) {
         // Prevent sending SESSION_ID multiple times
         let sessionDelivered = false;
 
+        // Guard against endless reconnect loops (e.g. if the platform
+        // is throttling us and every attempt fails with 428/etc).
+        let reconnectAttempts = 0;
+        const MAX_RECONNECT_ATTEMPTS = 6;
+
         const codeTimeout = setTimeout(() => {
             if (!codeSettled) {
                 codeSettled = true;
@@ -143,6 +148,9 @@ export async function generatePair(phone, jobId) {
                     const loggedOut =
                         statusCode === DisconnectReason.loggedOut;
 
+                    const restartRequired =
+                        statusCode === DisconnectReason.restartRequired;
+
                     console.log("❌ Connection Closed", statusCode);
 
                     if (loggedOut) {
@@ -175,9 +183,50 @@ export async function generatePair(phone, jobId) {
                         return;
                     }
 
-                    console.log("🔄 Restarting connection to complete pairing...");
+                    // restartRequired (515) is expected right after a pair
+                    // code is verified — reconnect immediately, and don't
+                    // let it eat into the retry budget for real failures.
+                    if (restartRequired) {
 
-                    connect();
+                        console.log("🔄 Restart required — reconnecting immediately...");
+
+                        connect();
+                        return;
+                    }
+
+                    reconnectAttempts++;
+
+                    if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
+
+                        console.log(
+                            `❌ Giving up after ${MAX_RECONNECT_ATTEMPTS} reconnect attempts (last code: ${statusCode}).`
+                        );
+
+                        finishCode(
+                            new Error(
+                                `Pairing failed after repeated disconnects (code ${statusCode}).`
+                            )
+                        );
+
+                        jobManager.update(jobId, {
+                            status: "failed"
+                        });
+
+                        try {
+                            sock?.end();
+                        } catch (_) {}
+
+                        return;
+                    }
+
+                    const backoffMs =
+                        Math.min(2000 * (2 ** (reconnectAttempts - 1)), 20000);
+
+                    console.log(
+                        `🔄 Restarting connection to complete pairing... (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}, waiting ${backoffMs}ms)`
+                    );
+
+                    setTimeout(connect, backoffMs);
                 }
             });
         };
@@ -185,4 +234,4 @@ export async function generatePair(phone, jobId) {
         connect();
     });
                             }
-                       
+
