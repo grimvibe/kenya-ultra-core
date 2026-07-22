@@ -1,20 +1,19 @@
 import { initAuthCreds } from "baileys";
 
 /**
- * A minimal, fully in-memory Baileys auth state.
- *
- * Core doesn't need to persist sessions to disk — it only needs
- * creds/keys to exist in memory long enough to pair, then bundle
- * them into the SESSION_ID sent to the user. getSnapshot() gives
- * you that full { creds, keys } object, ready to pass straight
- * into encodeSession().
+ * Fully in-memory auth state for Kenya-Ultra Core.
+ * Compatible with Baileys v7 RC13.
  */
-export function useMemoryAuthState() {
+export function useMemoryAuthState(existing = null) {
 
-    const creds = initAuthCreds();
-    const keys = {};
+    const creds = existing?.creds || initAuthCreds();
 
-    return {
+    // Preserve existing keys if we're reconnecting
+    const keys = existing?.keys
+        ? structuredClone(existing.keys)
+        : {};
+
+    const authState = {
 
         state: {
 
@@ -26,12 +25,12 @@ export function useMemoryAuthState() {
 
                     const data = {};
 
+                    keys[type] ||= {};
+
                     for (const id of ids) {
 
-                        const value = keys[type]?.[id];
-
-                        if (value) {
-                            data[id] = value;
+                        if (keys[type][id] !== undefined) {
+                            data[id] = keys[type][id];
                         }
 
                     }
@@ -40,17 +39,17 @@ export function useMemoryAuthState() {
 
                 },
 
-                set: async (data) => {
+                set: async (newData) => {
 
-                    for (const type in data) {
+                    for (const type in newData) {
 
-                        keys[type] = keys[type] || {};
+                        keys[type] ||= {};
 
-                        for (const id in data[type]) {
+                        for (const id in newData[type]) {
 
-                            const value = data[type][id];
+                            const value = newData[type][id];
 
-                            if (value === null || value === undefined) {
+                            if (value === null) {
                                 delete keys[type][id];
                             } else {
                                 keys[type][id] = value;
@@ -66,13 +65,27 @@ export function useMemoryAuthState() {
 
         },
 
-        // Baileys calls this on "creds.update" — nothing to do since
-        // `creds` above is mutated in place and read live by getSnapshot().
-        saveCreds: async () => {},
+        /**
+         * Baileys mutates creds in-place.
+         * Nothing needs writing because we're purely in memory.
+         */
+        saveCreds: async () => {
+            return;
+        },
 
-        // Full, plain-JSON-serializable snapshot of the current auth state.
-        getSnapshot: () => ({ creds, keys })
+        /**
+         * Snapshot used to generate SESSION_ID.
+         */
+        getSnapshot: () => ({
+
+            creds: structuredClone(creds),
+
+            keys: structuredClone(keys)
+
+        })
 
     };
 
-}
+    return authState;
+
+        }
