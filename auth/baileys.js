@@ -1,50 +1,86 @@
 import makeWASocket, {
-  fetchLatestBaileysVersion,
-  Browsers
+    fetchLatestBaileysVersion,
+    Browsers
 } from "baileys";
 
 import P from "pino";
 import { useMemoryAuthState } from "./memoryAuthState.js";
 
-export async function createSocket(existingAuthState) {
+export async function createSocket(existingAuthState = null) {
 
-  // In-memory auth state — Core only needs this to live long enough
-  // to complete pairing, then it gets bundled into the SESSION_ID.
-  // Reuse the same authState across reconnects (pass it back in)
-  // so identity keys generated on the first attempt aren't lost.
-  const authState = existingAuthState || useMemoryAuthState();
+    // Rebuild the auth state from the previous snapshot on reconnect.
+    const authState = existingAuthState
+        ? useMemoryAuthState(existingAuthState.getSnapshot())
+        : useMemoryAuthState();
 
-  // Always use the latest supported WhatsApp Web version
-  const { version } = await fetchLatestBaileysVersion();
+    // Always use the latest WhatsApp Web version.
+    const { version } = await fetchLatestBaileysVersion();
 
-  const sock = makeWASocket({
+    console.log("📦 Using WhatsApp Web Version:", version.join("."));
 
-    version,
+    const sock = makeWASocket({
 
-    auth: authState.state,
+        version,
 
-    // Change to "trace" whenever you're debugging
-    logger: P({
-      level: "info"
-    }),
+        auth: authState.state,
 
-    printQRInTerminal: false,
+        logger: P({
+            level: "silent"
+        }),
 
-    // Pair Codes work correctly using Ubuntu Chrome.
-    browser: Browsers.ubuntu("Chrome"),
+        printQRInTerminal: false,
 
-    // Don't download unnecessary history
-    syncFullHistory: false,
+        browser: Browsers.ubuntu("Chrome"),
 
-    // Show the bot as online after connecting
-    markOnlineOnConnect: true
+        syncFullHistory: false,
 
-  });
+        // Better during pairing
+        markOnlineOnConnect: false,
 
-  sock.ev.on("creds.update", authState.saveCreds);
+        // Helps keep the socket alive during authentication
+        keepAliveIntervalMs: 30000,
 
-  // Return both — pairManager needs authState.getSnapshot() once
-  // pairing completes, to build the SESSION_ID.
-  return { sock, authState };
+        // Avoids some unnecessary retries
+        retryRequestDelayMs: 250,
+
+        // Faster message retries
+        defaultQueryTimeoutMs: 60000
+
+    });
+
+    // Baileys updates creds continuously while pairing.
+    sock.ev.on("creds.update", async () => {
+
+        try {
+
+            await authState.saveCreds();
+
+        } catch (err) {
+
+            console.error("❌ Failed to save credentials:", err);
+
+        }
+
+    });
+
+    sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
+
+        if (connection) {
+            console.log("📡 Connection State:", connection);
+        }
+
+        if (lastDisconnect?.error) {
+            console.log("📛 Disconnect Reason:", lastDisconnect.error);
+        }
+
+    });
+
+    return {
+
+        sock,
+
+        authState
+
+    };
 
 }
