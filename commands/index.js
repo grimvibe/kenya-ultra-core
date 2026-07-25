@@ -1,7 +1,10 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath, pathToFileURL } from "url";
-import commands from "./commandStore.js";
+
+import commands, {
+    registerCommand
+} from "./commandStore.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,10 +89,7 @@ async function loadCommands() {
 
             }
 
-            commands.set(
-                command.name.toLowerCase(),
-                command
-            );
+            registerCommand(command);
 
             console.log(
                 `✅ Loaded command: ${command.name} (${path.relative(__dirname, file)})`
@@ -115,7 +115,10 @@ async function loadCommands() {
 
 export {
     getCommand,
-    getCommands
+    getCommands,
+    getCategories,
+    getStatistics,
+    getManifest
 } from "./commandStore.js";
 
 export default commands;
@@ -137,4 +140,4 @@ try {
 
     process.exit(1);
 
-    }
+}
