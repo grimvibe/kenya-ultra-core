@@ -2,12 +2,16 @@ import express from "express";
 import dotenv from "dotenv";
 import chalk from "chalk";
 import cors from "cors";
-import fs from "fs";
-import path from "path";
 
 import pairRouter from "./api/pair.js";
 import executeRouter from "./api/execute.js";
 import validateRouter from "./api/validate.js";
+import commandsRouter from "./api/commands.js";
+
+import {
+    getStatistics,
+    getManifest
+} from "./commands/index.js";
 
 dotenv.config();
 
@@ -32,28 +36,6 @@ const CORE = {
     started: Date.now()
 };
 
-function countCommands(dir) {
-    let total = 0;
-
-    const files = fs.readdirSync(dir);
-
-    for (const file of files) {
-
-        const full = path.join(dir, file);
-
-        if (fs.statSync(full).isDirectory()) {
-            total += countCommands(full);
-        } else if (file.endsWith(".js")) {
-            total++;
-        }
-
-    }
-
-    return total;
-}
-
-const commandCount = countCommands("./commands");
-
 // ================================
 // Existing APIs
 // ================================
@@ -61,9 +43,10 @@ const commandCount = countCommands("./commands");
 app.use("/pair", pairRouter);
 app.use("/validate", validateRouter);
 app.use("/execute", executeRouter);
+app.use("/commands", commandsRouter);
 
 // ================================
-// New Core APIs
+// Core APIs
 // ================================
 
 app.get("/", (req, res) => {
@@ -76,6 +59,8 @@ app.get("/", (req, res) => {
             pair: "/pair",
             validate: "/validate",
             execute: "/execute",
+            commands: "/commands",
+            commandsDownload: "/commands/download",
             manifest: "/manifest",
             handshake: "/handshake",
             version: "/version",
@@ -91,13 +76,7 @@ app.get("/manifest", (req, res) => {
 
         success: true,
 
-        platform: CORE.name,
-
-        version: CORE.version,
-
-        protocol: CORE.protocol,
-
-        commandCount,
+        ...getManifest(),
 
         runtime: "Node.js",
 
@@ -107,7 +86,11 @@ app.get("/manifest", (req, res) => {
 
             validate: "/validate",
 
-            execute: "/execute"
+            execute: "/execute",
+
+            commands: "/commands",
+
+            commandsDownload: "/commands/download"
 
         }
 
@@ -147,6 +130,8 @@ app.get("/handshake", (req, res) => {
 
 app.get("/health", (req, res) => {
 
+    const stats = getStatistics();
+
     res.json({
 
         success: true,
@@ -155,7 +140,13 @@ app.get("/health", (req, res) => {
 
         memory: process.memoryUsage(),
 
-        commands: commandCount,
+        commands: stats.total,
+
+        categories: stats.categories,
+
+        version: stats.version,
+
+        protocol: stats.protocol,
 
         status: "healthy"
 
@@ -178,14 +169,19 @@ console.log(chalk.green(`
 ╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝
 `));
 
-console.log(chalk.green(`${CORE.name}`));
+console.log(chalk.green(CORE.name));
 console.log(chalk.gray("Starting services...\n"));
 
 app.listen(PORT, () => {
 
+    const stats = getStatistics();
+
     console.log(chalk.green(`✓ Core running on port ${PORT}`));
-    console.log(chalk.cyan(`✓ Commands Loaded : ${commandCount}`));
+    console.log(chalk.cyan(`✓ Commands Loaded : ${stats.total}`));
+    console.log(chalk.cyan(`✓ Categories      : ${stats.categories}`));
     console.log(chalk.cyan(`✓ Protocol        : v${CORE.protocol}`));
     console.log(chalk.cyan(`✓ Version         : ${CORE.version}`));
+    console.log(chalk.green(`✓ SDK Ready`));
+    console.log(chalk.green(`✓ Public API Ready`));
 
 });
