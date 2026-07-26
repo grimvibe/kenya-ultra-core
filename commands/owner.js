@@ -1,26 +1,60 @@
-import Reply from "../utils/reply.js";
-
 export default {
     name: "owner",
     description: "Show contact details for the bot owner.",
     category: "General",
 
-    async execute(message) {
+    async execute() {
 
-        const info = `👤 *Bot Owner*
+        const info = `╭━━━〔 👑 BOT OWNER 〕━━━⬣
 
-━━━━━━━━━━━━━━
-
-Lucid Tech Solutions
-
-📦 Kenya-Ultra v1.0.0
-💚 Powered by Kenya-Ultra
+👤 *Lawrence*
+🏢 *Lucid Tech Solutions*
 
 ━━━━━━━━━━━━━━
 
-For support or business inquiries, reach out through the number registered to this bot.`;
+🤖 Bot : Kenya-Ultra
+📦 Version : v1.0.0
+⚡ Developer : Lawrence
 
-        return Reply.text(info);
+━━━━━━━━━━━━━━
+
+📞 Phone
++254 754 938 511
+
+📧 Email
+lucidtechsolutions41@gmail.com
+
+💻 GitHub
+https://github.com/lawrencenjeri4-lgtm
+
+📢 WhatsApp Channel
+https://whatsapp.com/channel/0029VbDbTKcG8l5JKqrsMS2f
+
+🌐 Website
+Coming Soon...
+
+━━━━━━━━━━━━━━
+
+💚 Thank you for using Kenya-Ultra.
+
+For support, business inquiries, collaborations or bug reports, feel free to reach out using any of the contacts above.
+
+━━━━━━━━━━━━━━
+
+© 2026 Kenya-Ultra`;
+
+        return {
+            action: "reply",
+            reply: {
+                type: "image",
+                file: "owner.jpg",
+                caption: info,
+                contact: {
+                    displayName: "Lawrence",
+                    phone: "254754938511"
+                }
+            }
+        };
 
     }
 
