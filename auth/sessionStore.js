@@ -53,7 +53,7 @@ export async function loadAuth(sessionId) {
 
     if (!raw) return null;
 
-    return JSON.parse(raw);
+    return JSON.parse(raw, BufferJSON.reviver);
 
 }
 
@@ -105,4 +105,4 @@ export async function deleteWarn(groupId, userId) {
         `warn:${groupId}:${userId}`
     ]);
 
-        }
+}
