@@ -147,23 +147,29 @@ class Reply {
 
     static image({
 
-        url,
+    url = null,
 
-        caption = ""
+    file = null,
 
-    }) {
+    caption = "",
 
-        return {
+    contact = null
 
-            success: true,
+}) {
 
-            reply: {
-                type: "image",
-                url,
-                caption
-            }
+    return {
 
-        };
+        success: true,
+
+        reply: {
+            type: "image",
+            url,
+            file,
+            caption,
+            contact
+        }
+
+    };
 
     }
 
