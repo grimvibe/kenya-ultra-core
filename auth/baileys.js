@@ -8,10 +8,10 @@ import { useMemoryAuthState } from "./memoryAuthState.js";
 
 export async function createSocket(existingAuthState = null) {
 
-    // Rebuild the auth state from the previous snapshot on reconnect.
-    const authState = existingAuthState
-        ? useMemoryAuthState(existingAuthState.getSnapshot())
-        : useMemoryAuthState();
+    // Reuse the exact same auth state object across reconnects —
+    // Baileys mutates it in place, so there's no need to snapshot
+    // and rebuild it (doing so was corrupting key types on reconnect).
+    const authState = existingAuthState || useMemoryAuthState();
 
     // Always use the latest WhatsApp Web version.
     const { version } = await fetchLatestBaileysVersion();
