@@ -14,11 +14,12 @@
   "author": "Lucid Dev",
   "license": "MIT",
   "dependencies": {
+    "archiver": "^7.0.1",
     "axios": "^1.11.0",
     "baileys": "^7.0.0-rc13",
     "browser": "^0.2.6",
     "chalk": "^5.6.0",
-    "cors": "^2.8.6",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "pino": "^9.9.0",
