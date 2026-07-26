@@ -5,6 +5,7 @@ class Reply {
         return {
             success: true,
             reply: {
+                type: "text",
                 text,
                 mentions
             }
@@ -17,6 +18,7 @@ class Reply {
         return {
             success: false,
             reply: {
+                type: "text",
                 text: `❌ ${text}`,
                 mentions: []
             }
@@ -29,6 +31,7 @@ class Reply {
         return {
             success: true,
             reply: {
+                type: "text",
                 text: `✅ ${text}`,
                 mentions: []
             }
@@ -41,6 +44,7 @@ class Reply {
         return {
             success: true,
             reply: {
+                type: "text",
                 text: `ℹ️ ${text}`,
                 mentions: []
             }
@@ -76,8 +80,131 @@ class Reply {
             success: true,
 
             reply: {
+                type: "text",
                 text,
                 mentions
+            }
+
+        };
+
+    }
+
+    static audio({
+
+        url,
+
+        mimetype = "audio/mp4",
+
+        fileName = "audio.mp3",
+
+        caption = ""
+
+    }) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                type: "audio",
+                url,
+                mimetype,
+                fileName,
+                caption
+            }
+
+        };
+
+    }
+
+    static video({
+
+        url,
+
+        caption = "",
+
+        mimetype = "video/mp4",
+
+        fileName = "video.mp4"
+
+    }) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                type: "video",
+                url,
+                caption,
+                mimetype,
+                fileName
+            }
+
+        };
+
+    }
+
+    static image({
+
+        url,
+
+        caption = ""
+
+    }) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                type: "image",
+                url,
+                caption
+            }
+
+        };
+
+    }
+
+    static sticker({
+
+        url
+
+    }) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                type: "sticker",
+                url
+            }
+
+        };
+
+    }
+
+    static document({
+
+        url,
+
+        fileName,
+
+        mimetype
+
+    }) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                type: "document",
+                url,
+                fileName,
+                mimetype
             }
 
         };
