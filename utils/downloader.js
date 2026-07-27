@@ -1,13 +1,9 @@
 import axios from "axios";
 import yts from "yt-search";
 
-const COD3_API = "https://api.cod3uchiha.com/downloaders";
+const API = "https://api.cod3uchiha.com/downloaders";
 
 class Downloader {
-
-    // ==========================
-    // Cod3Uchiha Request
-    // ==========================
 
     async request(endpoint, url) {
 
@@ -18,7 +14,7 @@ class Downloader {
         try {
 
             const { data } = await axios.get(
-                `${COD3_API}/${endpoint}`,
+                `${API}/${endpoint}`,
                 {
                     params: { url },
                     timeout: 60000
@@ -45,35 +41,17 @@ class Downloader {
 
     }
 
-    // ==========================
-    // YouTube MP3
-    // ==========================
+    //==============================
+    // YOUTUBE
+    //==============================
 
     async ytmp3(url) {
-
-        return await this.request(
-            "ytmp3",
-            url
-        );
-
+        return await this.request("ytmp3", url);
     }
-
-    // ==========================
-    // YouTube MP4
-    // ==========================
 
     async ytmp4(url) {
-
-        return await this.request(
-            "ytmp4",
-            url
-        );
-
+        return await this.request("ytmp4", url);
     }
-
-    // ==========================
-    // YouTube Search
-    // ==========================
 
     async yts(query) {
 
@@ -97,9 +75,9 @@ class Downloader {
 
     }
 
-    // ==========================
-    // Facebook Downloader
-    // ==========================
+    //==============================
+    // FACEBOOK
+    //==============================
 
     async fb(url) {
 
@@ -112,27 +90,34 @@ class Downloader {
             const { data } = await axios.get(
                 "https://api.siputzx.my.id/api/d/facebook",
                 {
-                    params: {
-                        url
+                    params: { url },
+                    headers: {
+                        "User-Agent": "Mozilla/5.0",
+                        "Accept": "application/json"
                     },
                     timeout: 60000
                 }
             );
 
             if (!data.status || !data.data) {
-                throw new Error(
-                    "Facebook download failed."
-                );
+                throw new Error("Facebook download failed.");
             }
 
-            return data.data;
+            return {
+                title: data.data.title,
+                duration: data.data.duration,
+                thumbnail: data.data.thumbnail,
+                downloads: data.data.downloads
+            };
 
         } catch (err) {
+
+            console.log(err.response?.data);
 
             throw new Error(
                 err.response?.data?.message ||
                 err.message ||
-                "Facebook downloader failed."
+                "Facebook download failed."
             );
 
         }
