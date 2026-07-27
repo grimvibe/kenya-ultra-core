@@ -1,9 +1,13 @@
 import axios from "axios";
 import yts from "yt-search";
 
-const API = "https://api.cod3uchiha.com/downloaders";
+const COD3_API = "https://api.cod3uchiha.com/downloaders";
 
 class Downloader {
+
+    // ==========================
+    // Cod3Uchiha Request
+    // ==========================
 
     async request(endpoint, url) {
 
@@ -14,7 +18,7 @@ class Downloader {
         try {
 
             const { data } = await axios.get(
-                `${API}/${endpoint}`,
+                `${COD3_API}/${endpoint}`,
                 {
                     params: { url },
                     timeout: 60000
@@ -41,6 +45,10 @@ class Downloader {
 
     }
 
+    // ==========================
+    // YouTube MP3
+    // ==========================
+
     async ytmp3(url) {
 
         return await this.request(
@@ -49,6 +57,10 @@ class Downloader {
         );
 
     }
+
+    // ==========================
+    // YouTube MP4
+    // ==========================
 
     async ytmp4(url) {
 
@@ -59,6 +71,36 @@ class Downloader {
 
     }
 
+    // ==========================
+    // YouTube Search
+    // ==========================
+
+    async yts(query) {
+
+        if (!query) {
+            throw new Error("Search query is required.");
+        }
+
+        const { videos } = await yts(query);
+
+        return {
+            result: videos.map(video => ({
+                title: video.title,
+                url: video.url,
+                thumbnail: video.thumbnail,
+                duration: video.timestamp,
+                author: {
+                    name: video.author?.name || "Unknown"
+                }
+            }))
+        };
+
+    }
+
+    // ==========================
+    // Facebook Downloader
+    // ==========================
+
     async fb(url) {
 
         if (!url) {
@@ -68,16 +110,18 @@ class Downloader {
         try {
 
             const { data } = await axios.get(
-                `${API}/facebook`,
+                "https://api.siputzx.my.id/api/d/facebook",
                 {
-                    params: { url },
+                    params: {
+                        url
+                    },
                     timeout: 60000
                 }
             );
 
             if (!data.status || !data.data) {
                 throw new Error(
-                    data.message || "Facebook download failed."
+                    "Facebook download failed."
                 );
             }
 
@@ -92,36 +136,6 @@ class Downloader {
             );
 
         }
-
-    }
-
-    async yts(query) {
-
-        if (!query) {
-            throw new Error("Search query is required.");
-        }
-
-        const { videos } = await yts(query);
-
-        return {
-
-            result: videos.map(video => ({
-
-                title: video.title,
-
-                url: video.url,
-
-                thumbnail: video.thumbnail,
-
-                duration: video.timestamp,
-
-                author: {
-                    name: video.author?.name || "Unknown"
-                }
-
-            }))
-
-        };
 
     }
 
