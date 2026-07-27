@@ -1,5 +1,5 @@
+import Downloader from "../../utils/downloader.js";
 import Reply from "../../utils/reply.js";
-import MaxxTech from "../../utils/maxxtech.js";
 
 export default {
 
@@ -9,37 +9,64 @@ export default {
 
     category: "Download",
 
-    async execute(ctx) {
+    usage: ".ytmp3 <youtube-link>",
 
-        const { args } = ctx;
+    async execute(message) {
 
-        if (!args.length)
+        // Get the raw command text regardless of Core format
+        const raw =
+            message.text ||
+            message.body ||
+            message.content ||
+            message.message ||
+            "";
+
+        // Extract everything after the command
+        const parts = raw.trim().split(/\s+/);
+
+        if (parts.length < 2) {
+
             return Reply.error(
-                "Usage:\n.ytmp3 <youtube link>"
+`Please provide a YouTube link.
+
+Example:
+.ytmp3 https://youtu.be/dQw4w9WgXcQ`
             );
 
-        const url = args.join(" ");
+        }
 
-        const result = await MaxxTech.downloader(url);
+        const url = parts.slice(1).join(" ");
 
-        const audio =
-            result.formats.sort(
-                (a, b) => b.size - a.size
-            )[0];
+        try {
 
-        return Reply.audio({
-            url: audio.url,
-            mimetype: audio.mime,
-            fileName: `${result.title}.${audio.ext}`,
-            caption:
-`🎵 ${result.title}
+            const result = await Downloader.ytmp3(url);
 
-👤 ${result.uploader}
-⏱ ${result.duration}s
-💾 ${audio.size_human}
+            return Reply.audio({
 
-🐺 Kenya-Ultra`
-        });
+                url: result.downloadUrl,
+
+                fileName: `${result.title}.mp3`,
+
+                caption:
+`🎵 *${result.title}*
+
+⬇️ Download completed successfully.
+
+🐺 Powered by Kenya-Ultra 👑`
+
+            });
+
+        }
+
+        catch (err) {
+
+            console.log(err);
+
+            return Reply.error(
+                err.message || "Failed to download audio."
+            );
+
+        }
 
     }
 
