@@ -1,5 +1,10 @@
 import Downloader from "../../utils/downloader.js";
 import Reply from "../../utils/reply.js";
+import {
+    startLoading,
+    finishLoading,
+    failLoading
+} from "../../utils/loading.js";
 
 export default {
 
@@ -13,7 +18,7 @@ export default {
 
     async execute(message) {
 
-        if (!message.args.length) {
+        if (!message.args || !message.args.length) {
 
             return Reply.error(
 `Please provide a YouTube link.
@@ -26,9 +31,49 @@ Example:
 
         const url = message.args[0];
 
+        let loading;
+
         try {
 
+            loading = await startLoading(
+
+                message.sock,
+
+                message.chat,
+
+                message.rawMessage,
+
+`╭━━━〔 🎵 Kenya-Ultra Downloader 〕━━━⬣
+
+⏳ Downloading Audio...
+
+━━━━━━━━━━━━━━
+
+🔍 Fetching YouTube...
+
+📦 Preparing Audio...
+
+⚡ Please wait...
+
+━━━━━━━━━━━━━━
+
+🐺 Powered by Kenya-Ultra 👑`
+
+            );
+
             const result = await Downloader.ytmp3(url);
+
+            await finishLoading(
+
+                message.sock,
+
+                message.chat,
+
+                message.rawMessage,
+
+                loading
+
+            );
 
             return Reply.audio({
 
@@ -37,20 +82,38 @@ Example:
                 fileName: `${result.title}.mp3`,
 
                 caption:
-`🎵 ${result.title}
+`🎵 *${result.title}*
 
-Powered by Kenya-Ultra 👑`
+━━━━━━━━━━━━━━
+
+✅ Download Complete
+
+🐺 Powered by Kenya-Ultra 👑`
 
             });
 
-        }
+        } catch (err) {
 
-        catch (err) {
+            console.error(err);
 
-            console.log(err);
+            await failLoading(
+
+                message.sock,
+
+                message.chat,
+
+                message.rawMessage,
+
+                loading
+
+            );
 
             return Reply.error(
-                err.message || "Failed to download audio."
+
+                err.message ||
+
+                "Failed to download audio."
+
             );
 
         }
