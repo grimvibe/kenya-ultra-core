@@ -81,10 +81,10 @@ export default {
         text += `│\n`;
         text += `╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`;
 
-        return Reply.text(
-            text,
-            [...owner,...admins].map(x=>x.id)
-        );
+        return Reply.groupIcon({
+            caption: text,
+            mentions: [...owner, ...admins].map(x => x.id)
+        });
 
     }
 
