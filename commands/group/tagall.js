@@ -121,14 +121,15 @@ export default {
 
         text += `╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`;
 
-        return Reply.text(
+        return Reply.groupIcon({
 
-            text,
+            caption: text,
 
-            groupMetadata.participants.map(p => p.id)
+            mentions: groupMetadata.participants.map(p => p.id)
 
-        );
+        });
 
     }
 
 };
+    
