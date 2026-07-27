@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import chalk from "chalk";
 import cors from "cors";
+import path from "path";
 
 import pairRouter from "./api/pair.js";
 import executeRouter from "./api/execute.js";
@@ -24,6 +25,12 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// ================================
+// Static Assets (images, etc.)
+// ================================
+
+app.use("/assets", express.static(path.join(process.cwd(), "assets")));
 
 // ================================
 // Core Information
