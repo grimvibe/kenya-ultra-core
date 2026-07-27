@@ -1,3 +1,5 @@
+import { assetUrl } from "../utils/assetUrl.js";
+
 export default {
     name: "menu",
     description: "Display the Kenya-Ultra command menu.",
@@ -123,7 +125,7 @@ export default {
             action: "reply",
             reply: {
                 type: "image",
-                file: "menu.jpg",
+                url: assetUrl("images/menu.jpg"),
                 caption: menu
             }
         };
@@ -131,3 +133,4 @@ export default {
     }
 
 };
+                
