@@ -1,4 +1,5 @@
 import axios from "axios";
+import yts from "yt-search";
 
 const API = "https://api.cod3uchiha.com/downloaders";
 
@@ -55,6 +56,36 @@ class Downloader {
             "ytmp4",
             url
         );
+
+    }
+
+    async yts(query) {
+
+        if (!query) {
+            throw new Error("Search query is required.");
+        }
+
+        const { videos } = await yts(query);
+
+        return {
+
+            result: videos.map(video => ({
+
+                title: video.title,
+
+                url: video.url,
+
+                thumbnail: video.thumbnail,
+
+                duration: video.timestamp,
+
+                author: {
+                    name: video.author?.name || "Unknown"
+                }
+
+            }))
+
+        };
 
     }
 
