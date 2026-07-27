@@ -13,18 +13,7 @@ export default {
 
     async execute(message) {
 
-        // Get the raw command text regardless of Core format
-        const raw =
-            message.text ||
-            message.body ||
-            message.content ||
-            message.message ||
-            "";
-
-        // Extract everything after the command
-        const parts = raw.trim().split(/\s+/);
-
-        if (parts.length < 2) {
+        if (!message.args.length) {
 
             return Reply.error(
 `Please provide a YouTube link.
@@ -35,7 +24,7 @@ Example:
 
         }
 
-        const url = parts.slice(1).join(" ");
+        const url = message.args[0];
 
         try {
 
@@ -48,11 +37,9 @@ Example:
                 fileName: `${result.title}.mp3`,
 
                 caption:
-`🎵 *${result.title}*
+`🎵 ${result.title}
 
-⬇️ Download completed successfully.
-
-🐺 Powered by Kenya-Ultra 👑`
+Powered by Kenya-Ultra 👑`
 
             });
 
