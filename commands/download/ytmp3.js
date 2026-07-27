@@ -30,14 +30,32 @@ Example:
 
             const result = await Downloader.ytmp3(url);
 
-            return Reply.audio({
+            return {
 
-                url: result.downloadUrl,
+                action: "download",
 
-                fileName: `${result.title}.mp3`,
+                reply: {
 
-                caption:
-`🎵 *${result.title}*
+                    type: "audio",
+
+                    url: result.downloadUrl,
+
+                    fileName: `${result.title}.mp3`,
+
+                    mimetype: "audio/mpeg",
+
+                    title: result.title,
+
+                    duration: result.duration || "Unknown",
+
+                    size: result.size || "Unknown",
+
+                    thumbnail: result.thumbnail,
+
+                    source: "YouTube",
+
+                    caption:
+`🎵 ${result.title}
 
 ━━━━━━━━━━━━━━
 
@@ -45,7 +63,9 @@ Example:
 
 🐺 Powered by Kenya-Ultra 👑`
 
-            });
+                }
+
+            };
 
         } catch (err) {
 
