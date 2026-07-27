@@ -124,6 +124,88 @@ class Downloader {
 
     }
 
+    //==============================
+    // SOUNDCLOUD SEARCH
+    //==============================
+
+    async scSearch(query) {
+
+        if (!query) {
+            throw new Error("Search query is required.");
+        }
+
+        try {
+
+            const { data } = await axios.get(
+                "https://api.siputzx.my.id/api/s/soundcloud",
+                {
+                    params: { query },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data.length) {
+                throw new Error("No SoundCloud results found.");
+            }
+
+            return data.data;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "SoundCloud search failed."
+            );
+
+        }
+
+    }
+
+    //==============================
+    // SOUNDCLOUD DOWNLOAD
+    //==============================
+
+    async soundcloud(url) {
+
+        if (!url) {
+            throw new Error("SoundCloud URL is required.");
+        }
+
+        try {
+
+            const { data } = await axios.get(
+                "https://api.siputzx.my.id/api/d/soundcloud",
+                {
+                    params: { url },
+                    headers: {
+                        "User-Agent": "Mozilla/5.0",
+                        "Accept": "application/json"
+                    },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data) {
+                throw new Error("SoundCloud download failed.");
+            }
+
+            return data.data;
+
+        } catch (err) {
+
+            console.log(err.response?.data);
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "SoundCloud download failed."
+            );
+
+        }
+
+    }
+
 }
 
 export default new Downloader();
