@@ -13,7 +13,7 @@ export default {
 
     async execute(message) {
 
-        if (!message.args || !message.args.length) {
+        if (!message.args?.length) {
 
             return Reply.error(
 `Please provide a YouTube link.
@@ -30,44 +30,38 @@ Example:
 
             const result = await Downloader.ytmp3(url);
 
-            return {
+            return Reply.download({
 
-                action: "download",
+                mediaType: "audio",
 
-                reply: {
+                url: result.downloadUrl,
 
-                    type: "audio",
+                title: result.title,
 
-                    url: result.downloadUrl,
+                thumbnail:
+                    result.thumbnail ||
 
-                    fileName: `${result.title}.mp3`,
+                    "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
 
-                    mimetype: "audio/mpeg",
+                duration:
+                    result.duration || "Unknown",
 
-                    title: result.title,
+                size:
+                    result.size || "Unknown",
 
-                    duration: result.duration || "Unknown",
+                source: "YouTube",
 
-                    size: result.size || "Unknown",
+                fileName:
+                    `${result.title}.mp3`,
 
-                    thumbnail: result.thumbnail,
+                mimetype:
+                    "audio/mpeg"
 
-                    source: "YouTube",
+            });
 
-                    caption:
-`🎵 ${result.title}
+        }
 
-━━━━━━━━━━━━━━
-
-✅ Download Complete
-
-🐺 Powered by Kenya-Ultra 👑`
-
-                }
-
-            };
-
-        } catch (err) {
+        catch (err) {
 
             console.error(err);
 
