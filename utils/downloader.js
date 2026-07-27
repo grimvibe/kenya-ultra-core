@@ -59,6 +59,42 @@ class Downloader {
 
     }
 
+    async fb(url) {
+
+        if (!url) {
+            throw new Error("Facebook URL is required.");
+        }
+
+        try {
+
+            const { data } = await axios.get(
+                `${API}/facebook`,
+                {
+                    params: { url },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data) {
+                throw new Error(
+                    data.message || "Facebook download failed."
+                );
+            }
+
+            return data.data;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "Facebook downloader failed."
+            );
+
+        }
+
+    }
+
     async yts(query) {
 
         if (!query) {
