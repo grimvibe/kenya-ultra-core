@@ -44,7 +44,7 @@ export default {
         text += `│\n`;
         text += `╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`;
 
-        return Reply.text(text);
+        return Reply.groupIcon({ caption: text });
 
     }
 
