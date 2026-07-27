@@ -173,6 +173,28 @@ class Reply {
 
     }
 
+    static groupIcon({
+
+        caption = "",
+
+        mentions = []
+
+    }) {
+
+        return {
+
+            success: true,
+
+            reply: {
+                type: "group_icon",
+                caption,
+                mentions
+            }
+
+        };
+
+    }
+
     static sticker({
 
         url
