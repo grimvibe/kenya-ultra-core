@@ -44,8 +44,9 @@ export default {
                 ? args.join(" ")
                 : "📢 Attention everyone!";
 
-        return Reply.text(
+        return Reply.groupIcon({
 
+            caption:
 `╭⊷ 📢 *HIDETAG*
 
 │
@@ -56,9 +57,9 @@ export default {
 
 ╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`,
 
-groupMetadata.participants.map(p=>p.id)
+            mentions: groupMetadata.participants.map(p => p.id)
 
-        );
+        });
 
     }
 
