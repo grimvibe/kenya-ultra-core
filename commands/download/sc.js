@@ -3,6 +3,8 @@ import Downloader from "../../lib/Downloader.js";
 export default {
     name: "sc",
     aliases: ["soundcloud"],
+    category: "Downloader",
+    description: "Search and download SoundCloud audio.",
 
     async execute(sock, m, args) {
 
@@ -13,22 +15,28 @@ export default {
 
             const query = args.join(" ");
 
+            // Search SoundCloud
             const results = await Downloader.scSearch(query);
 
             const first = results[0];
 
+            // Download first result
             const data = await Downloader.soundcloud(first.permalink_url);
+
+            const duration = Math.floor(data.duration / 1000);
+            const minutes = Math.floor(duration / 60);
+            const seconds = String(duration % 60).padStart(2, "0");
 
             const caption =
 `☁️ *SoundCloud Downloader*
 
-🎵 ${data.title}
+🎵 *${data.title}*
 👤 ${data.user}
+⏱ ${minutes}:${seconds}
 
-⏳ ${Math.floor(data.duration / 1000)} sec
+⬇️ Downloading audio...`;
 
-⬇ Downloading...`;
-
+            // Thumbnail
             await sock.sendMessage(
                 m.chat,
                 {
@@ -38,6 +46,7 @@ export default {
                 { quoted: m }
             );
 
+            // Audio
             await sock.sendMessage(
                 m.chat,
                 {
@@ -48,8 +57,10 @@ export default {
                 { quoted: m }
             );
 
-        } catch (e) {
-            m.reply(`❌ ${e.message}`);
+        } catch (err) {
+
+            m.reply(`❌ ${err.message}`);
+
         }
 
     }
