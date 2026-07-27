@@ -4,51 +4,57 @@ const API = "https://api.cod3uchiha.com/downloaders";
 
 class Downloader {
 
-    async ytmp3(url) {
+    async request(endpoint, url) {
 
         if (!url) {
-            throw new Error("YouTube URL is required.");
+            throw new Error("URL is required.");
         }
 
-        const { data } = await axios.get(
-            `${API}/ytmp3`,
-            {
-                params: {
-                    url
-                },
-                timeout: 30000
+        try {
+
+            const { data } = await axios.get(
+                `${API}/${endpoint}`,
+                {
+                    params: { url },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data) {
+                throw new Error(
+                    data.message || "Download failed."
+                );
             }
-        );
 
-        if (!data.status) {
-            throw new Error("Failed to download audio.");
+            return data.data;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "Downloader failed."
+            );
+
         }
 
-        return data.data;
+    }
+
+    async ytmp3(url) {
+
+        return await this.request(
+            "ytmp3",
+            url
+        );
 
     }
 
     async ytmp4(url) {
 
-        if (!url) {
-            throw new Error("YouTube URL is required.");
-        }
-
-        const { data } = await axios.get(
-            `${API}/ytmp4`,
-            {
-                params: {
-                    url
-                },
-                timeout: 30000
-            }
+        return await this.request(
+            "ytmp4",
+            url
         );
-
-        if (!data.status) {
-            throw new Error("Failed to download video.");
-        }
-
-        return data.data;
 
     }
 
