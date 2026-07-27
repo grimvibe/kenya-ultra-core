@@ -1,3 +1,5 @@
+import { assetUrl } from "../utils/assetUrl.js";
+
 export default {
     name: "owner",
     description: "Show contact details for the bot owner.",
@@ -47,7 +49,7 @@ For support, business inquiries, collaborations or bug reports, feel free to rea
             action: "reply",
             reply: {
                 type: "image",
-                file: "owner.jpg",
+                url: assetUrl("images/owner.jpg"),
                 caption: info,
                 contact: {
                     displayName: "Lawrence",
