@@ -1,67 +1,123 @@
-import Downloader from "../../lib/Downloader.js";
+import axios from "axios";
+import Downloader from "../../utils/downloader.js";
+import Reply from "../../utils/reply.js";
 
 export default {
+
     name: "sc",
+
     aliases: ["soundcloud"],
-    category: "Downloader",
+
     description: "Search and download SoundCloud audio.",
 
-    async execute(sock, m, args) {
+    category: "Download",
 
-        if (!args.length)
-            return m.reply("Example:\n.sc Heat Waves");
+    usage: ".sc <song name>",
+
+    async execute(message) {
+
+        if (!message.args || !message.args.length) {
+
+            return Reply.error(
+`Please provide a search term.
+
+Example:
+.sc Heat Waves`
+            );
+
+        }
+
+        const query = message.args.join(" ");
 
         try {
 
-            const query = args.join(" ");
-
-            // Search SoundCloud
             const results = await Downloader.scSearch(query);
 
             const first = results[0];
 
-            // Download first result
             const data = await Downloader.soundcloud(first.permalink_url);
 
-            const duration = Math.floor(data.duration / 1000);
-            const minutes = Math.floor(duration / 60);
-            const seconds = String(duration % 60).padStart(2, "0");
+            const durationSec = Math.floor((data.duration || 0) / 1000);
+            const minutes = Math.floor(durationSec / 60);
+            const seconds = String(durationSec % 60).padStart(2, "0");
+            const durationLabel = `${minutes}:${seconds}`;
 
-            const caption =
-`☁️ *SoundCloud Downloader*
+            let sizeLabel = "Unknown size";
 
-🎵 *${data.title}*
-👤 ${data.user}
-⏱ ${minutes}:${seconds}
+            try {
 
-⬇️ Downloading audio...`;
+                const head = await axios.head(data.url, { timeout: 15000 });
 
-            // Thumbnail
-            await sock.sendMessage(
-                m.chat,
-                {
-                    image: { url: data.thumbnail },
-                    caption
+                const bytes = Number(head.headers["content-length"]);
+
+                if (bytes) {
+                    sizeLabel = `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+                }
+
+            } catch {}
+
+            if (message.sock) {
+
+                await message.sock.sendMessage(
+                    message.chat,
+                    {
+                        react: {
+                            text: "✅",
+                            key: message.rawMessage.key
+                        }
+                    }
+                );
+
+            }
+
+            return Reply.audio({
+
+                url: data.url,
+
+                mimetype: "audio/mpeg",
+
+                fileName: `${data.title}.mp3`,
+
+                caption:
+`☁️ *${data.title}*
+
+👤 ${data.user} | ⏱ ${durationLabel} | ${sizeLabel} | Kenya-Ultra
+
+🔗 soundcloud.com
+
+━━━━━━━━━━━━━━
+
+✅ Download Complete
+
+🐺 Powered by Kenya-Ultra 👑`,
+
+                contextInfo: {
+
+                    externalAdReply: {
+                        title: data.title,
+                        body: `${data.user} • ${durationLabel} • ${sizeLabel} • Kenya-Ultra`,
+                        thumbnailUrl: data.thumbnail,
+                        sourceUrl: first.permalink_url,
+                        mediaType: 1,
+                        renderLargerThumbnail: true,
+                        showAdAttribution: false
+                    }
+
                 },
-                { quoted: m }
-            );
 
-            // Audio
-            await sock.sendMessage(
-                m.chat,
-                {
-                    audio: { url: data.url },
-                    mimetype: "audio/mpeg",
-                    fileName: `${data.title}.mp3`
-                },
-                { quoted: m }
-            );
+                alsoDocument: true
+
+            });
 
         } catch (err) {
 
-            m.reply(`❌ ${err.message}`);
+            return Reply.error(
+                err.message || "Failed to download from SoundCloud."
+            );
 
         }
 
     }
+
 };
+                        
