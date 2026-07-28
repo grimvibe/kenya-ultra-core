@@ -107,7 +107,11 @@ class Reply {
 
         fileName = "audio.mp3",
 
-        caption = ""
+        caption = "",
+
+        contextInfo = null,
+
+        alsoDocument = false
 
     }) {
 
@@ -125,7 +129,11 @@ class Reply {
 
                 fileName,
 
-                caption
+                caption,
+
+                contextInfo,
+
+                alsoDocument
 
             }
 
@@ -292,3 +300,4 @@ class Reply {
 }
 
 export default Reply;
+                
