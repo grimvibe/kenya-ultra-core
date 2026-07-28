@@ -206,6 +206,158 @@ class Downloader {
 
     }
 
+    //==============================
+    // TIKTOK
+    //==============================
+
+    async tiktok(url) {
+
+        if (!url) {
+            throw new Error("TikTok URL is required.");
+        }
+
+        try {
+
+            const { data } = await axios.get(
+                "https://api.siputzx.my.id/api/d/tiktok/v2",
+                {
+                    params: { url },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data) {
+                throw new Error("TikTok download failed.");
+            }
+
+            return data.data;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "TikTok download failed."
+            );
+
+        }
+
+    }
+
+    //==============================
+    // TWITTER / X
+    //==============================
+
+    async twitter(url) {
+
+        if (!url) {
+            throw new Error("Twitter/X URL is required.");
+        }
+
+        try {
+
+            const { data } = await axios.get(
+                "https://api.siputzx.my.id/api/d/twitter",
+                {
+                    params: { url },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data) {
+                throw new Error("Twitter download failed.");
+            }
+
+            return data.data;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "Twitter download failed."
+            );
+
+        }
+
+    }
+
+    //==============================
+    // INSTAGRAM PROFILE (Ummy)
+    //==============================
+
+    async ummy(username) {
+
+        if (!username) {
+            throw new Error("Instagram username is required.");
+        }
+
+        try {
+
+            const { data } = await axios.get(
+                "https://api.siputzx.my.id/api/d/ummy",
+                {
+                    params: { url: username },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data) {
+                throw new Error("Instagram profile lookup failed.");
+            }
+
+            return data.data;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "Instagram profile lookup failed."
+            );
+
+        }
+
+    }
+
+    //==============================
+    // CAPCUT
+    //==============================
+
+    async capcut(url) {
+
+        if (!url) {
+            throw new Error("CapCut URL is required.");
+        }
+
+        try {
+
+            const { data } = await axios.get(
+                "https://api.siputzx.my.id/api/d/capcut",
+                {
+                    params: { url },
+                    timeout: 60000
+                }
+            );
+
+            if (!data.status || !data.data) {
+                throw new Error("CapCut download failed.");
+            }
+
+            return data.data;
+
+        } catch (err) {
+
+            throw new Error(
+                err.response?.data?.message ||
+                err.message ||
+                "CapCut download failed."
+            );
+
+        }
+
+    }
+
 }
 
 export default new Downloader();
