@@ -1,3 +1,4 @@
+import axios from "axios";
 import Downloader from "../../utils/downloader.js";
 import Reply from "../../utils/reply.js";
 
@@ -114,6 +115,28 @@ video.url,
             const audio =
                 await Downloader.ytmp3(video.url);
 
+            // Work out file size for the caption
+            let sizeLabel = "Unknown size";
+
+            try {
+
+                const head = await axios.head(
+                    audio.downloadUrl,
+                    { timeout: 15000 }
+                );
+
+                const bytes =
+                    Number(head.headers["content-length"]);
+
+                if (bytes) {
+
+                    sizeLabel =
+                        `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+
+                }
+
+            } catch {}
+
             // ✅ React
             if (message.sock) {
 
@@ -139,11 +162,40 @@ video.url,
                 caption:
 `🎵 *${audio.title}*
 
+${video.author.name} | ⏱ ${video.duration} | ${sizeLabel} | Kenya-Ultra
+
+🔗 youtube.com
+
 ━━━━━━━━━━━━━━
 
 ✅ Download Complete
 
-🐺 Powered by Kenya-Ultra 👑`
+🐺 Powered by Kenya-Ultra 👑`,
+
+                contextInfo: {
+
+                    externalAdReply: {
+
+                        title: audio.title,
+
+                        body:
+`${video.author.name} • ${video.duration} • ${sizeLabel} • Kenya-Ultra`,
+
+                        thumbnailUrl: video.thumbnail,
+
+                        sourceUrl: video.url,
+
+                        mediaType: 1,
+
+                        renderLargerThumbnail: true,
+
+                        showAdAttribution: false
+
+                    }
+
+                },
+
+                alsoDocument: true
 
             });
 
@@ -175,3 +227,4 @@ video.url,
     }
 
 };
+            
