@@ -3,7 +3,7 @@ import { getCommand } from "../commands/index.js";
 import { loadAuth } from "../auth/sessionStore.js";
 import { getChatSettings } from "../utils/chatbotSettings.js";
 import { shouldAutoReply } from "../utils/chatbotTrigger.js";
-import MaxxTech from "../utils/maxxtech.js";
+import Prexzy from "../utils/prexzy.js";
 
 const router = express.Router();
 
@@ -68,17 +68,14 @@ router.post("/", async (req, res) => {
                         ? `${settings.persona}\n\nUser message: ${message.text}`
                         : message.text;
 
-                    const data = await MaxxTech.request(
-                        "/ai/text",
-                        { prompt, model: "openai" }
-                    );
+                    const replyText = await Prexzy.chat(prompt);
 
                     return res.json({
                         success: true,
                         action: "reply",
                         reply: {
                             type: "text",
-                            text: data.response
+                            text: replyText
                         }
                     });
 
