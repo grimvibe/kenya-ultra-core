@@ -1,11 +1,11 @@
-import style1 from "./menu/style1.js";
-import style2 from "./menu/style2.js";
-import style3 from "./menu/style3.js";
-import style4 from "./menu/style4.js";
-import style5 from "./menu/style5.js";
-import style6 from "./menu/style6.js";
-import style7 from "./menu/style7.js";
-import style8 from "./menu/style8.js";
+import style1 from "./style1.js";
+import style2 from "./style2.js";
+import style3 from "./style3.js";
+import style4 from "./style4.js";
+import style5 from "./style5.js";
+import style6 from "./style6.js";
+import style7 from "./style7.js";
+import style8 from "./style8.js";
 
 const styles = {
     1: style1,
