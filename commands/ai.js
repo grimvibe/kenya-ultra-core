@@ -1,4 +1,4 @@
-import MaxxTech from "../utils/maxxtech.js";
+import Prexzy from "../utils/prexzy.js";
 import Cod3Uchiha from "../utils/cod3uchiha.js";
 import Reply from "../utils/reply.js";
 
@@ -35,22 +35,14 @@ Example:
         try {
 
             // Primary provider
-            const data = await MaxxTech.request(
-                "/ai/text",
-                {
-                    prompt,
-                    model: "openai"
-                }
-            );
-
-            response = data.response;
+            response = await Prexzy.ask(prompt);
 
         } catch (primaryErr) {
 
             try {
 
                 // Fallback provider — used automatically if the primary
-                // is down, so it recovers on its own once MaxxTech is
+                // is down, so it recovers on its own once Prexzy is
                 // stable again.
                 response = await Cod3Uchiha.ask(prompt);
                 usedFallback = true;
