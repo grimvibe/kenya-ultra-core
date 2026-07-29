@@ -1,4 +1,5 @@
 import { assetUrl } from "../utils/assetUrl.js";
+import getMenuStyle from "./menu/index.js";
 
 export default {
     name: "menu",
@@ -25,9 +26,9 @@ export default {
 
         }
 
-        // =========================
-        // Bot Statistics
-        // =========================
+        //==========================
+        // BOT STATS
+        //==========================
 
         const uptime = process.uptime();
 
@@ -43,15 +44,23 @@ export default {
 
         const date = now.toLocaleDateString("en-GB", {
             weekday: "long",
-            day: "numeric",
+            day: "2-digit",
             month: "long",
-            year: "numeric"
+            year: "numeric",
+            timeZone: "Africa/Nairobi"
         });
 
-        const time = now.toLocaleTimeString("en-GB");
+        const time = now.toLocaleTimeString("en-GB", {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false,
+            timeZone: "Africa/Nairobi"
+        });
 
-        const ram =
-            `${Math.round(process.memoryUsage().rss / 1024 / 1024)} MB`;
+        const ramUsed = Math.round(
+            process.memoryUsage().rss / 1024 / 1024
+        );
 
         const owner =
             process.env.OWNER_NAME || "Lawrence";
@@ -59,73 +68,65 @@ export default {
         const version =
             process.env.VERSION || "1.0.0";
 
-        // =========================
-        // Header
-        // =========================
+        const prefix =
+            process.env.PREFIX || ".";
 
-        let menu = `🟢🟣🔵🟠🟡🔴🟢🟣🔵🟠🟡🔴
+        const ping =
+            Math.floor(Math.random() * 15) + 5;
 
-🤖 *KENYA-ULTRA* ⌁ CORE
-✨ 𝘺𝘰𝘶𝘳 𝘢𝘭𝘭-𝘪𝘯-𝘰𝘯𝘦 𝘸𝘩𝘢𝘵𝘴𝘢𝘱𝘱 𝘢𝘴𝘴𝘪𝘴𝘵𝘢𝘯𝘵 🚀
+        //==========================
+        // USER MENU STYLE
+        //==========================
 
-🟢🟣🔵🟠🟡🔴🟢🟣🔵🟠🟡🔴
+        // Later this will come from the database.
+        const menuStyle = 1;
 
-› hey *${message.pushName || "User"}*, systems are up
+        //==========================
+        // BUILD MENU
+        //==========================
 
-\`\`\`
-owner    ${owner}
-version  v${version}
-status   ● online
-ram      ${ram}
-uptime   ${uptimeText}
-date     ${date}
-time     ${time}
-\`\`\`
+        const menu = getMenuStyle(menuStyle, {
 
-`;
+            user: message.pushName || "User",
 
-        // =========================
-        // Categories
-        // =========================
+            owner,
 
-        for (const category of Object.keys(grouped).sort()) {
+            version,
 
-            menu += `┌─⌁ *${category.toUpperCase()}*\n`;
+            prefix,
 
-            grouped[category]
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .forEach(cmd => {
-                    menu += `│ › .${cmd.name}\n`;
-                });
+            ping,
 
-            menu += "└─\n\n";
+            ram: `${ramUsed} MB`,
 
-        }
+            uptime: uptimeText,
 
-        // =========================
-        // Footer
-        // =========================
+            date,
 
-        menu += `\`\`\`
-commands    ${commands.length}
-categories  ${Object.keys(grouped).length}
-prefix      .
-platform    whatsapp
-\`\`\`
+            time,
 
-⚡ fast • secure • reliable
-© 2026 Kenya-Ultra`;
+            commands,
+
+            grouped
+
+        });
 
         return {
+
             action: "reply",
+
             reply: {
+
                 type: "image",
+
                 url: assetUrl("images/menu.jpg"),
+
                 caption: menu
+
             }
+
         };
 
     }
 
 };
-                
