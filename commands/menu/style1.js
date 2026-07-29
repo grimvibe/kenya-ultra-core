@@ -6,27 +6,31 @@ export default function style1(data) {
         owner,
         version,
         ram,
-        uptimeText,
+        uptime,
         date,
         time,
-        user
+        user,
+        prefix,
+        ping
     } = data;
 
-    let menu = `╭━━━━━━━━━━━━━━━━━━━━━━━╮
-┃ ⚡ *KENYA-ULTRA*
-┃ Next Generation WhatsApp Bot
-╰━━━━━━━━━━━━━━━━━━━━━━━╯
+    let menu = `
+╭━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣
+┃      🤖  KENYA-ULTRA
+┃   Next Generation WhatsApp AI
+╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━⬣
 
-╭─〔 SYSTEM STATUS 〕
-│ 👤 User : ${user}
-│ 👑 Owner : ${owner}
-│ 🚀 Version : v${version}
-│ 🟢 Status : ONLINE
-│ 💾 RAM : ${ram}
-│ ⏱ Uptime : ${uptimeText}
+╭─〔 SYSTEM 〕
+│ 👤 User      : ${user}
+│ 👑 Developer : ${owner}
+│ ⚙️ Version   : v${version}
+│ 📶 Status    : ONLINE
+│ ⚡ Speed     : ${ping} ms
+│ 💾 RAM       : ${ram}
+│ ⏳ Uptime    : ${uptime}
 │ 📅 ${date}
 │ 🕒 ${time}
-╰───────────────────
+╰────────────────────────⬣
 
 `;
 
@@ -38,23 +42,32 @@ export default function style1(data) {
             .sort((a, b) => a.name.localeCompare(b.name))
             .forEach(cmd => {
 
-                menu += `│ ◈ ${cmd.name}\n`;
+                menu += `│ ⬡ ${prefix}${cmd.name}\n`;
 
             });
 
-        menu += "╰───────────────────\n\n";
+        menu += "╰────────────────────────⬣\n\n";
 
     }
 
-    menu += `╭─〔 BOT INFO 〕
-│ 📦 Commands : ${commands.length}
+    menu += `
+╭─〔 BOT INFO 〕
+│ 📦 Commands   : ${commands.length}
 │ 📂 Categories : ${Object.keys(grouped).length}
-│ 🔹 Prefix : .
-│ 🌍 Platform : WhatsApp
-╰───────────────────
+│ 🔹 Prefix     : ${prefix}
+│ 🌐 Platform   : WhatsApp
+╰────────────────────────⬣
+
+╭─〔 KENYA-ULTRA 〕
+│ ⚡ Fast
+│ 🛡 Secure
+│ 🚀 Reliable
+│ 🤖 AI Powered
+╰────────────────────────⬣
 
 > © 2026 Kenya-Ultra
-> Powered by Lucid Tech Solutions`;
+> Developed by Lucid Tech Solutions
+`;
 
     return menu;
 
