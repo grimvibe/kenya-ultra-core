@@ -1,4 +1,5 @@
 import Downloader from "../../utils/downloader.js";
+import MaxxTech from "../../utils/maxxtech.js";
 import Reply from "../../utils/reply.js";
 
 export default {
@@ -26,6 +27,10 @@ Example:
 
         const url = message.args[0];
 
+        // ==========================
+        // Primary source
+        // ==========================
+
         try {
 
             const result = await Downloader.ytmp3(url);
@@ -40,7 +45,6 @@ Example:
 
                 thumbnail:
                     result.thumbnail ||
-
                     "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
 
                 duration:
@@ -59,19 +63,59 @@ Example:
 
             });
 
-        }
+        } catch (primaryErr) {
 
-        catch (err) {
+            console.error("ytmp3 primary source failed:", primaryErr.message);
 
-            console.error(err);
+            // ==========================
+            // Fallback source (MaxxTech)
+            // ==========================
 
-            return Reply.error(
+            try {
 
-                err.message ||
+                const fb = await MaxxTech.request(
+                    "/maxxtech",
+                    { url, type: "mp3" }
+                );
 
-                "Failed to download audio."
+                const best = fb.formats?.[0];
 
-            );
+                if (!best) {
+                    throw new Error("No audio formats returned.");
+                }
+
+                return Reply.download({
+
+                    mediaType: "audio",
+
+                    url: best.url,
+
+                    title: fb.title,
+
+                    thumbnail: fb.thumbnail,
+
+                    duration:
+                        fb.duration ? `${Math.floor(fb.duration / 60)}:${String(fb.duration % 60).padStart(2, "0")}` : "Unknown",
+
+                    size: best.size_human || "Unknown",
+
+                    source: "YouTube (fallback)",
+
+                    fileName: `${fb.title}.${best.ext || "m4a"}`,
+
+                    mimetype: best.mime || "audio/mp4"
+
+                });
+
+            } catch (fallbackErr) {
+
+                console.error("ytmp3 fallback source failed:", fallbackErr.message);
+
+                return Reply.error(
+                    "Failed to download audio from all available sources. Please try again later."
+                );
+
+            }
 
         }
 
