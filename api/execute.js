@@ -1,6 +1,9 @@
 import express from "express";
 import { getCommand } from "../commands/index.js";
 import { loadAuth } from "../auth/sessionStore.js";
+import { getChatSettings } from "../utils/chatbotSettings.js";
+import { shouldAutoReply } from "../utils/chatbotTrigger.js";
+import MaxxTech from "../utils/maxxtech.js";
 
 const router = express.Router();
 
@@ -45,8 +48,47 @@ router.post("/", async (req, res) => {
 
         const PREFIX = ".";
 
-        // Ignore non-commands
+        // Non-commands: check chatbot auto-reply before ignoring
         if (!message.text.startsWith(PREFIX)) {
+
+            try {
+
+                const settings = await getChatSettings(message.chat);
+
+                const eligible = shouldAutoReply({
+                    settings,
+                    isGroup: message.isGroup,
+                    message: message.message,
+                    botIds: message.botIds || []
+                });
+
+                if (eligible) {
+
+                    const prompt = settings.persona
+                        ? `${settings.persona}\n\nUser message: ${message.text}`
+                        : message.text;
+
+                    const data = await MaxxTech.request(
+                        "/ai/text",
+                        { prompt, model: "openai" }
+                    );
+
+                    return res.json({
+                        success: true,
+                        action: "reply",
+                        reply: {
+                            type: "text",
+                            text: data.response
+                        }
+                    });
+
+                }
+
+            } catch (err) {
+
+                console.error("Chatbot auto-reply error:", err.message);
+
+            }
 
             return res.json({
                 success: true,
