@@ -8,10 +8,11 @@ export function useMemoryAuthState(existing = null) {
 
     const creds = existing?.creds || initAuthCreds();
 
-    // Preserve existing keys if we're reconnecting
-    const keys = existing?.keys
-        ? structuredClone(existing.keys)
-        : {};
+    // Safely preserve existing keys
+    const keys =
+        existing?.keys && typeof existing.keys === "object"
+            ? structuredClone(existing.keys)
+            : {};
 
     const authState = {
 
@@ -25,11 +26,13 @@ export function useMemoryAuthState(existing = null) {
 
                     const data = {};
 
-                    keys[type] ||= {};
+                    if (!keys[type]) {
+                        keys[type] = {};
+                    }
 
                     for (const id of ids) {
 
-                        if (keys[type][id] !== undefined) {
+                        if (Object.prototype.hasOwnProperty.call(keys[type], id)) {
                             data[id] = keys[type][id];
                         }
 
@@ -41,15 +44,21 @@ export function useMemoryAuthState(existing = null) {
 
                 set: async (newData) => {
 
-                    for (const type in newData) {
+                    if (!newData || typeof newData !== "object") {
+                        return;
+                    }
 
-                        keys[type] ||= {};
+                    for (const type of Object.keys(newData)) {
 
-                        for (const id in newData[type]) {
+                        if (!keys[type]) {
+                            keys[type] = {};
+                        }
+
+                        for (const id of Object.keys(newData[type])) {
 
                             const value = newData[type][id];
 
-                            if (value === null) {
+                            if (value === null || value === undefined) {
                                 delete keys[type][id];
                             } else {
                                 keys[type][id] = value;
@@ -77,15 +86,12 @@ export function useMemoryAuthState(existing = null) {
          * Snapshot used to generate SESSION_ID.
          */
         getSnapshot: () => ({
-
             creds: structuredClone(creds),
-
-            keys: structuredClone(keys)
-
+            keys: structuredClone(keys || {})
         })
 
     };
 
     return authState;
 
-        }
+                                }
