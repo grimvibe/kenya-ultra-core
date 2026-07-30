@@ -509,6 +509,167 @@ async function tiktokAlt(url) {
 
 }
 
+// =========================
+// Movie/TV info search (TMDB-style)
+// =========================
+// https://prexzyapis.com/anime/tmdb?action=search&query=...
+//
+// Example response:
+// {
+//   "status": true,
+//   "statusCode": 200,
+//   "creator": "prexzy",
+//   "action": "search",
+//   "result": {
+//     "page": 1, "total_pages": 5, "total_results": 87,
+//     "results": [
+//       { id, title|name, media_type, overview, poster_path,
+//         release_date|first_air_date, vote_average, genre_ids }
+//     ]
+//   }
+// }
+//
+// NOTE: results can include media_type "movie", "tv", or "person".
+// Callers should filter out "person" entries.
+
+async function movieSearch(query) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/anime/tmdb`,
+            {
+                params: { action: "search", query },
+                timeout: 30000
+            }
+        );
+
+        const list = data.result?.results;
+
+        if (!data.status || !list) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return list.filter(item => item.media_type !== "person");
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// Streaming source search (movies/series with playable resources)
+// =========================
+// https://prexzyapis.com/search?q=...
+//
+// Example response:
+// {
+//   "status": true,
+//   "statusCode": 200,
+//   "creator": "prexzy",
+//   "query": "...",
+//   "results": {
+//     "pager": { hasMore, nextPage, page, perPage, totalCount },
+//     "items": [
+//       { subjectId, subjectType, title, releaseDate, genre,
+//         cover: { url }, countryName, imdbRatingValue,
+//         subtitles, hasResource, detailPath }
+//     ]
+//   }
+// }
+//
+// subjectId from an item here is what /detail?id= expects.
+
+async function streamSearch(query) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/search`,
+            {
+                params: { q: query },
+                timeout: 30000
+            }
+        );
+
+        const items = data.results?.items;
+
+        if (!data.status || !items) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return items;
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// Streaming source detail (playback/episode data)
+// =========================
+// https://prexzyapis.com/detail?id=<subjectId>
+//
+// IMPORTANT: requires a real subjectId from streamSearch() — a plain
+// title will fail with {"code":400,"reason":"PARAMS_ERROR"}.
+//
+// The exact shape of a *successful* response hasn't been confirmed yet
+// (we've only seen the error case). This function returns the raw
+// "detail" payload as-is so the caller can adapt once we see a real
+// success example — do not assume a fixed schema here.
+
+async function streamDetail(subjectId) {
+
+    if (!subjectId) {
+        throw new Error("subjectId is required.");
+    }
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/detail`,
+            {
+                params: { id: subjectId },
+                timeout: 30000
+            }
+        );
+
+        if (!data.status || data.detail?.code === 400) {
+            throw new Error(
+                data.detail?.message ||
+                data.message ||
+                "Failed to fetch detail for that title."
+            );
+        }
+
+        return data.detail;
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
 export default {
     ask,
     chat,
@@ -520,5 +681,8 @@ export default {
     web2zip,
     aioDownload,
     tiktok,
-    tiktokAlt
+    tiktokAlt,
+    movieSearch,
+    streamSearch,
+    streamDetail
 };
