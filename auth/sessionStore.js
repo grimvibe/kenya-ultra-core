@@ -141,7 +141,28 @@ export async function deleteMuteList(groupId) {
 
 }
 
-/* ---------------- BOT SETTINGS (mode + prefix) ---------------- */
+/* ---------------- MENU STYLE ---------------- */
+
+export async function saveMenuStyle(sessionId, userId, style) {
+
+    await redisRequest([
+        "set",
+        `menustyle:${sessionId}:${userId}`,
+        String(style)
+    ]);
+
+}
+
+export async function loadMenuStyle(sessionId, userId) {
+
+    const raw = await redisRequest([
+        "get",
+        `menustyle:${sessionId}:${userId}`
+    ]);
+
+    return raw ? parseInt(raw, 10) : 1;
+
+}
 
 const DEFAULT_BOT_SETTINGS = {
     mode: "public",
