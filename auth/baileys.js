@@ -8,20 +8,14 @@ import { useMemoryAuthState } from "./memoryAuthState.js";
 
 export async function createSocket(existingAuthState = null) {
 
-    // Reuse the exact same auth state object across reconnects —
-    // Baileys mutates it in place, so there's no need to snapshot
-    // and rebuild it (doing so was corrupting key types on reconnect).
     const authState = existingAuthState || useMemoryAuthState();
 
-    // Always use the latest WhatsApp Web version.
     const { version } = await fetchLatestBaileysVersion();
 
     console.log("📦 Using WhatsApp Web Version:", version.join("."));
 
     const sock = makeWASocket({
-
         version,
-
         auth: authState.state,
 
         logger: P({
@@ -34,33 +28,35 @@ export async function createSocket(existingAuthState = null) {
 
         syncFullHistory: false,
 
-        // Better during pairing
         markOnlineOnConnect: false,
 
-        // Helps keep the socket alive during authentication
         keepAliveIntervalMs: 30000,
 
-        // Avoids some unnecessary retries
         retryRequestDelayMs: 250,
 
-        // Faster message retries
         defaultQueryTimeoutMs: 60000
-
     });
 
-    // Baileys updates creds continuously while pairing.
+    let saveTimer = null;
+
     sock.ev.on("creds.update", async () => {
-
         try {
-
             await authState.saveCreds();
 
+            // Always keep the latest snapshot
+            authState.latestSnapshot = authState.getSnapshot();
+
+            // Debounce multiple updates
+            clearTimeout(saveTimer);
+
+            saveTimer = setTimeout(() => {
+                authState.latestSnapshot = authState.getSnapshot();
+                console.log("✅ Auth snapshot updated.");
+            }, 5000);
+
         } catch (err) {
-
             console.error("❌ Failed to save credentials:", err);
-
         }
-
     });
 
     sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
@@ -76,11 +72,11 @@ export async function createSocket(existingAuthState = null) {
     });
 
     return {
-
         sock,
+        authState,
 
-        authState
-
+        getSnapshot() {
+            return authState.latestSnapshot || authState.getSnapshot();
+        }
     };
-
 }
