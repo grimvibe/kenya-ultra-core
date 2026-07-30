@@ -1,5 +1,6 @@
 import { assetUrl } from "../utils/assetUrl.js";
 import getMenuStyle from "./menu/index.js";
+import menuStyleService from "../services/menuStyleService.js";
 
 export default {
     name: "menu",
@@ -78,8 +79,10 @@ export default {
         // USER MENU STYLE
         //==========================
 
-        // Later this will come from the database.
-        const menuStyle = 1;
+        const menuStyle = await menuStyleService.get(
+            message.sessionId,
+            message.sender
+        );
 
         //==========================
         // BUILD MENU
