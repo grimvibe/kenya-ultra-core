@@ -164,6 +164,8 @@ router.post("/", async (req, res) => {
 
     args,
 
+    commandName,
+
     message: message.message,
 
     rawMessage: message.rawMessage,
