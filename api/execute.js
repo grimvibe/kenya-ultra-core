@@ -5,6 +5,8 @@ import { getChatSettings } from "../utils/chatbotSettings.js";
 import { shouldAutoReply } from "../utils/chatbotTrigger.js";
 import Prexzy from "../utils/prexzy.js";
 import muteService from "../services/muteService.js";
+import botSettingsService from "../services/botSettingsService.js";
+import isBotOwner from "../utils/isBotOwner.js";
 
 const router = express.Router();
 
@@ -47,7 +49,21 @@ router.post("/", async (req, res) => {
 
         }
 
-        const PREFIX = ".";
+        const botIds = message.botIds || [];
+        const isOwnerMessage = isBotOwner(message.sender, botIds);
+
+        const botSettings = await botSettingsService.getSettings(sessionId);
+        const PREFIX = botSettings.prefix || ".";
+
+        // Private mode: only the bot owner gets a response at all.
+        if (botSettings.mode === "private" && !isOwnerMessage) {
+
+            return res.json({
+                success: true,
+                ignored: true
+            });
+
+        }
 
         // Muted users: block everything they send (commands and
         // normal chat alike), unless they're a group admin.
@@ -88,7 +104,7 @@ router.post("/", async (req, res) => {
                     settings,
                     isGroup: message.isGroup,
                     message: message.message,
-                    botIds: message.botIds || []
+                    botIds
                 });
 
                 if (eligible) {
@@ -168,7 +184,11 @@ router.post("/", async (req, res) => {
 
     isBotAdmin: message.isBotAdmin || false,
 
-    groupMetadata: message.groupMetadata || null
+    groupMetadata: message.groupMetadata || null,
+
+    botIds,
+
+    isBotOwner: isOwnerMessage
 
 });
 
