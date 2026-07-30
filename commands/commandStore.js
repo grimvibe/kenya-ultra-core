@@ -8,6 +8,18 @@ export function registerCommand(command) {
 
     commands.set(command.name.toLowerCase(), command);
 
+    if (Array.isArray(command.aliases)) {
+
+        for (const alias of command.aliases) {
+
+            if (alias) {
+                commands.set(alias.toLowerCase(), command);
+            }
+
+        }
+
+    }
+
 }
 
 export function getCommand(name) {
@@ -18,7 +30,7 @@ export function getCommand(name) {
 
 export function getCommands() {
 
-    return [...commands.values()];
+    return [...new Set(commands.values())];
 
 }
 
@@ -34,13 +46,15 @@ export function getCategories() {
 
 export function getStatistics() {
 
+    const total = getCommands().length;
+
     return {
 
-        total: commands.size,
+        total,
 
         categories: getCategories().length,
 
-        loaded: commands.size,
+        loaded: total,
 
         version: "1.0.0"
 
@@ -58,7 +72,7 @@ export function getManifest() {
 
         protocol: 1,
 
-        commandCount: commands.size,
+        commandCount: getCommands().length,
 
         categories: getCategories(),
 
