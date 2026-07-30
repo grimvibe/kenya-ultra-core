@@ -412,6 +412,103 @@ async function aioDownload(url) {
 
 }
 
+// =========================
+// TikTok downloader (primary)
+// =========================
+// https://prexzyapis.com/download/tiktok?url=...
+//
+// Example response:
+// {
+//   "status": true,
+//   "statusCode": 200,
+//   "creator": "prexzy",
+//   "data": {
+//     "title": "...", "cover": "...", "duration": 15,
+//     "play": "...",   // no watermark
+//     "wmplay": "...", // watermarked
+//     "hdplay": "...", // HD no watermark
+//     "music": "...",
+//     "author": { "unique_id": "...", "nickname": "..." },
+//     "play_count": 0, "digg_count": 0, "comment_count": 0
+//   }
+// }
+
+async function tiktok(url) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/download/tiktok`,
+            {
+                params: { url },
+                timeout: 30000
+            }
+        );
+
+        if (!data.status || !data.data?.play) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return data.data;
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// TikTok downloader (fallback)
+// =========================
+// https://prexzyapis.com/download/tik?url=...
+//
+// Example response:
+// {
+//   "status": true,
+//   "statusCode": 200,
+//   "creator": "prexzy",
+//   "title": "Video TikTok",
+//   "thumbnail": "...",
+//   "video_downloads": [ { quality, text, url } ],
+//   "audio_downloads": [ { text, url } ]
+// }
+
+async function tiktokAlt(url) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/download/tik`,
+            {
+                params: { url },
+                timeout: 30000
+            }
+        );
+
+        if (!data.status || !data.video_downloads?.length) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return data;
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
 export default {
     ask,
     chat,
@@ -421,5 +518,7 @@ export default {
     appleMusicSearch,
     lyricsSearch,
     web2zip,
-    aioDownload
+    aioDownload,
+    tiktok,
+    tiktokAlt
 };
