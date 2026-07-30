@@ -58,6 +58,150 @@ const FEATURES = {
 
     },
 
+    antibeg: {
+
+        title: "Anti-Beg",
+
+        supportsAction: false
+
+    },
+
+    antisticker: {
+
+        title: "Anti-Sticker",
+
+        supportsAction: false
+
+    },
+
+    antivoice: {
+
+        title: "Anti-Voice",
+
+        supportsAction: false
+
+    },
+
+    antifile: {
+
+        title: "Anti-File",
+
+        supportsAction: false
+
+    },
+
+    antiphoto: {
+
+        title: "Anti-Photo",
+
+        supportsAction: false
+
+    },
+
+    antivideo: {
+
+        title: "Anti-Video",
+
+        supportsAction: false
+
+    },
+
+    antiemoji: {
+
+        title: "Anti-Emoji",
+
+        supportsAction: false
+
+    },
+
+    antitag: {
+
+        title: "Anti-Tag",
+
+        supportsAction: false
+
+    },
+
+    antimention: {
+
+        title: "Anti-Mention",
+
+        supportsAction: false
+
+    },
+
+    antipoll: {
+
+        title: "Anti-Poll",
+
+        supportsAction: false
+
+    },
+
+    antigif: {
+
+        title: "Anti-Gif",
+
+        supportsAction: false
+
+    },
+
+    antiforwarded: {
+
+        title: "Anti-Forwarded",
+
+        supportsAction: false
+
+    },
+
+    antilocation: {
+
+        title: "Anti-Location",
+
+        supportsAction: false
+
+    },
+
+    anticontact: {
+
+        title: "Anti-Contact",
+
+        supportsAction: false
+
+    },
+
+    antisale: {
+
+        title: "Anti-Sale",
+
+        supportsAction: false
+
+    },
+
+    antinum: {
+
+        title: "Anti-Num",
+
+        supportsAction: false
+
+    },
+
+    autoapprove: {
+
+        title: "Auto-Approve",
+
+        supportsAction: false
+
+    },
+
+    autoreject: {
+
+        title: "Auto-Reject",
+
+        supportsAction: false
+
+    },
+
     
 
     welcome: {
