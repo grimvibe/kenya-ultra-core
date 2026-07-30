@@ -26,3 +26,17 @@ export default function getMention(message) {
     return null;
 
 }
+
+// Returns the sender of the message being replied to (quoted), if any.
+export function getQuotedParticipant(message) {
+
+    if (!message) return null;
+
+    return (
+        message.extendedTextMessage?.contextInfo?.participant ||
+        message.imageMessage?.contextInfo?.participant ||
+        message.videoMessage?.contextInfo?.participant ||
+        null
+    );
+
+}
