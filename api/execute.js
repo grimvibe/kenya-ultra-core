@@ -4,6 +4,7 @@ import { loadAuth } from "../auth/sessionStore.js";
 import { getChatSettings } from "../utils/chatbotSettings.js";
 import { shouldAutoReply } from "../utils/chatbotTrigger.js";
 import Prexzy from "../utils/prexzy.js";
+import muteService from "../services/muteService.js";
 
 const router = express.Router();
 
@@ -47,6 +48,34 @@ router.post("/", async (req, res) => {
         }
 
         const PREFIX = ".";
+
+        // Muted users: block everything they send (commands and
+        // normal chat alike), unless they're a group admin.
+        if (message.isGroup && message.sender && !message.isAdmin) {
+
+            try {
+
+                const muted = await muteService.isMuted(
+                    message.chat,
+                    message.sender
+                );
+
+                if (muted) {
+
+                    return res.json({
+                        success: true,
+                        action: "delete_message"
+                    });
+
+                }
+
+            } catch (err) {
+
+                console.error("Mute check failed:", err.message);
+
+            }
+
+        }
 
         // Non-commands: check chatbot auto-reply before ignoring
         if (!message.text.startsWith(PREFIX)) {
