@@ -8,6 +8,7 @@ import pairRouter from "./api/pair.js";
 import executeRouter from "./api/execute.js";
 import validateRouter from "./api/validate.js";
 import commandsRouter from "./api/commands.js";
+import settingsRouter from "./api/settings.js";
 
 import {
     getStatistics,
@@ -51,6 +52,7 @@ app.use("/pair", pairRouter);
 app.use("/validate", validateRouter);
 app.use("/execute", executeRouter);
 app.use("/commands", commandsRouter);
+app.use("/settings", settingsRouter);
 
 // ================================
 // Core APIs
@@ -68,6 +70,7 @@ app.get("/", (req, res) => {
             execute: "/execute",
             commands: "/commands",
             commandsDownload: "/commands/download",
+            settings: "/settings/:sessionId",
             manifest: "/manifest",
             handshake: "/handshake",
             version: "/version",
