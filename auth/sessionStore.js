@@ -140,3 +140,35 @@ export async function deleteMuteList(groupId) {
     ]);
 
 }
+
+/* ---------------- BOT SETTINGS (mode + prefix) ---------------- */
+
+const DEFAULT_BOT_SETTINGS = {
+    mode: "public",
+    prefix: "."
+};
+
+export async function saveBotSettings(sessionId, data) {
+
+    await redisRequest([
+        "set",
+        `botsettings:${sessionId}`,
+        JSON.stringify(data)
+    ]);
+
+}
+
+export async function loadBotSettings(sessionId) {
+
+    const raw = await redisRequest([
+        "get",
+        `botsettings:${sessionId}`
+    ]);
+
+    if (!raw) {
+        return { ...DEFAULT_BOT_SETTINGS };
+    }
+
+    return { ...DEFAULT_BOT_SETTINGS, ...JSON.parse(raw) };
+
+}
