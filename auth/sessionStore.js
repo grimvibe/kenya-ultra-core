@@ -106,3 +106,37 @@ export async function deleteWarn(groupId, userId) {
     ]);
 
 }
+
+/* ---------------- MUTES ---------------- */
+
+export async function saveMuteList(groupId, data) {
+
+    await redisRequest([
+        "set",
+        `mute:${groupId}`,
+        JSON.stringify(data)
+    ]);
+
+}
+
+export async function loadMuteList(groupId) {
+
+    const raw = await redisRequest([
+        "get",
+        `mute:${groupId}`
+    ]);
+
+    if (!raw) return {};
+
+    return JSON.parse(raw);
+
+}
+
+export async function deleteMuteList(groupId) {
+
+    await redisRequest([
+        "del",
+        `mute:${groupId}`
+    ]);
+
+}
