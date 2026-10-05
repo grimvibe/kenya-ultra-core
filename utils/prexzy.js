@@ -433,6 +433,58 @@ async function aioDownload(url) {
 //   }
 // }
 
+// =========================
+// YouTube audio downloader
+// =========================
+// https://prexzyapis.com/download/ytmp3?url=...
+//
+// NOTE: base path is "/download/" — confirmed working
+// 2026-08-09. ("/api/aio" 404s because that generic AIO route
+// doesn't support YouTube at all; this dedicated route does.)
+//
+// Example response:
+// {
+//   "status": true, "statusCode": 200, "creator": "prexzy",
+//   "type": "audio",
+//   "info": { id, title, duration, duration_string, thumbnail,
+//             uploader, channel, channel_url, webpage_url, ... },
+//   "download_url": "...",   // best-quality pick, ready to use
+//   "quality": "medium", "ext": "m4a", "abr": 129.5,
+//   "filesize": 3449447,
+//   "qualities": [ { format_id, quality, ext, abr, filesize,
+//                     download_url }, ... ]   // all options
+// }
+
+async function ytmp3(url) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/download/ytmp3`,
+            {
+                params: { url },
+                timeout: 60000
+            }
+        );
+
+        if (!data.status || !data.download_url) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return data;
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
 async function tiktok(url) {
 
     try {
@@ -670,10 +722,321 @@ async function streamDetail(subjectId) {
 
 }
 
+// =========================
+// Pinterest downloader
+// =========================
+// https://prexzyapis.com/download/pinterest?url=...
+//
+// Response shape follows the same family as other /download/*
+// endpoints on this API (status + data/media). Parsed defensively
+// since Pinterest pins can be either an image or a video.
+
+async function pinterestDownload(url) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/download/pinterest`,
+            {
+                params: { url },
+                timeout: 30000
+            }
+        );
+
+        const item =
+            data.data?.[0] ||
+            data.result?.[0] ||
+            data.media?.[0] ||
+            data.data ||
+            data.result;
+
+        const mediaUrl =
+            item?.url || item?.download_url || item?.video || item?.image;
+
+        if (!data.status || !mediaUrl) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return {
+            url: mediaUrl,
+            isVideo:
+                /\.(mp4|mov|webm)$/i.test(mediaUrl) ||
+                item?.type === "video",
+            title: item?.title || data.title || null
+        };
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// Threads downloader
+// =========================
+// https://prexzyapis.com/download/threads?url=...
+
+async function threadsDownload(url) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/download/threads`,
+            {
+                params: { url },
+                timeout: 30000
+            }
+        );
+
+        const item =
+            data.data?.[0] ||
+            data.result?.[0] ||
+            data.media?.[0] ||
+            data.data ||
+            data.result;
+
+        const mediaUrl =
+            item?.url || item?.download_url || item?.video || item?.image;
+
+        if (!data.status || !mediaUrl) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return {
+            url: mediaUrl,
+            isVideo:
+                /\.(mp4|mov|webm)$/i.test(mediaUrl) ||
+                item?.type === "video",
+            caption: item?.caption || data.caption || null
+        };
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// Spotify downloader
+// =========================
+// https://prexzyapis.com/download/spotify?url=...
+
+async function spotifyDownload(url) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/download/spotify`,
+            {
+                params: { url },
+                timeout: 40000
+            }
+        );
+
+        const item = data.data || data.result || data;
+
+        const audioUrl =
+            item?.download_url || item?.audio || item?.url;
+
+        if (!data.status || !audioUrl) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return {
+            audio: audioUrl,
+            title: item?.title || item?.name || "Spotify Track",
+            artist: item?.artist || item?.artists || "Unknown Artist",
+            cover: item?.cover || item?.image || item?.thumbnail || null
+        };
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// GitHub repo search
+// =========================
+// https://prexzyapis.com/search/repos?q=...
+
+async function githubRepoSearch(query) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/search/repos`,
+            {
+                params: { q: query },
+                timeout: 20000
+            }
+        );
+
+        const items = data.items || data.result?.items || data.data;
+
+        if (!data.status || !items?.length) {
+            throw new Error(data.message || "No repositories found.");
+        }
+
+        return items[0];
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// GitHub user search
+// =========================
+// https://prexzyapis.com/search/users?q=...
+
+async function githubUserSearch(query) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/search/users`,
+            {
+                params: { q: query },
+                timeout: 20000
+            }
+        );
+
+        const items = data.items || data.result?.items || data.data;
+
+        if (!data.status || !items?.length) {
+            throw new Error(data.message || "No users found.");
+        }
+
+        return items[0];
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// Wallpaper search
+// =========================
+// https://prexzyapis.com/search/wallpaper?q=...
+
+async function wallpaperSearch(query) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/search/wallpaper`,
+            {
+                params: { q: query },
+                timeout: 20000
+            }
+        );
+
+        const items = data.result || data.data || data.items;
+
+        if (!data.status || !items?.length) {
+            throw new Error(data.message || "No wallpapers found.");
+        }
+
+        return items;
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
+// =========================
+// DeepQuery provider (fallback)
+// =========================
+// https://prexzyapis.com/ai/deepquery?prompt=...
+//
+// Example response:
+// {
+//   "status": true,
+//   "statusCode": 200,
+//   "creator": "prexzy",
+//   "prompt": "Hi",
+//   "response": "...",
+//   "file": null,
+//   "model": "Meta LLaMA 4 Scout 17B",
+//   "service": "DeepQuery"
+// }
+
+async function deepQuery(prompt) {
+
+    try {
+
+        const { data } = await axios.get(
+            `${BASE}/ai/deepquery`,
+            {
+                params: { prompt },
+                timeout: 30000
+            }
+        );
+
+        if (!data.status || !data.response) {
+            throw new Error(data.message || "Request failed.");
+        }
+
+        return data.response;
+
+    } catch (err) {
+
+        throw new Error(
+            err.response?.data?.message ||
+            err.message ||
+            "Prexzy API request failed."
+        );
+
+    }
+
+}
+
 export default {
     ask,
     chat,
+    deepQuery,
     askgpt5,
+    ytmp3,
     trending,
     quizRandom,
     appleMusicSearch,
@@ -684,5 +1047,11 @@ export default {
     tiktokAlt,
     movieSearch,
     streamSearch,
-    streamDetail
+    streamDetail,
+    pinterestDownload,
+    threadsDownload,
+    spotifyDownload,
+    githubRepoSearch,
+    githubUserSearch,
+    wallpaperSearch
 };

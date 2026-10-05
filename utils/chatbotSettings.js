@@ -1,6 +1,7 @@
-import firestore from "./firestore.js";
-
-const COLLECTION = "chatbot_settings";
+import {
+    loadChatbotSettings,
+    saveChatbotSettings
+} from "../auth/sessionStore.js";
 
 const DEFAULT_SETTINGS = {
     enabled: false,
@@ -12,16 +13,9 @@ export async function getChatSettings(chatId) {
 
     try {
 
-        const doc = await firestore
-            .collection(COLLECTION)
-            .doc(chatId)
-            .get();
+        const stored = await loadChatbotSettings(chatId);
 
-        if (!doc.exists) {
-            return { ...DEFAULT_SETTINGS };
-        }
-
-        return { ...DEFAULT_SETTINGS, ...doc.data() };
+        return { ...DEFAULT_SETTINGS, ...(stored || {}) };
 
     } catch (err) {
 
@@ -36,12 +30,12 @@ export async function setChatSettings(chatId, updates) {
 
     try {
 
-        await firestore
-            .collection(COLLECTION)
-            .doc(chatId)
-            .set(updates, { merge: true });
+        const current = await getChatSettings(chatId);
+        const merged = { ...current, ...updates };
 
-        return await getChatSettings(chatId);
+        await saveChatbotSettings(chatId, merged);
+
+        return merged;
 
     } catch (err) {
 

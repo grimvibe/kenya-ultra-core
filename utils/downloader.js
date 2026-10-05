@@ -3,6 +3,15 @@ import yts from "yt-search";
 
 const API = "https://api.cod3uchiha.com/downloaders";
 
+// Paid tier required since ~2026-08 (was free/keyless when this
+// file was first written). Confirmed 2026-08-09 this is a
+// genuinely proxied, fast source (api.cod3uchiha.com domain,
+// ~470KB/sec) — NOT a googlevideo redirect like MaxxTech/Prexzy/
+// BK9, which get blocked/ETIMEDOUT when fetched from a server IP.
+// Set COD3UCHIHA_API_KEY in Cloud Run's env vars — do NOT
+// hardcode a paid key directly in this file.
+const API_KEY = process.env.COD3UCHIHA_API_KEY;
+
 class Downloader {
 
     async request(endpoint, url) {
@@ -11,12 +20,23 @@ class Downloader {
             throw new Error("URL is required.");
         }
 
+        if (!API_KEY) {
+            throw new Error(
+                "COD3UCHIHA_API_KEY is not set — get one from " +
+                "the cod3uchiha dashboard and add it to Cloud Run's env vars."
+            );
+        }
+
         try {
 
             const { data } = await axios.get(
                 `${API}/${endpoint}`,
                 {
                     params: { url },
+                    headers: {
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "Accept": "*/*"
+                    },
                     timeout: 60000
                 }
             );

@@ -40,3 +40,20 @@ export function getQuotedParticipant(message) {
     );
 
 }
+
+// Returns the actual content object of the message being replied to
+// (quoted), if any — e.g. { imageMessage: {...} } or
+// { stickerMessage: {...} }. Used by commands that need to inspect
+// or act on quoted media, like .sticker and .take.
+export function getQuotedMessage(message) {
+
+    if (!message) return null;
+
+    return (
+        message.extendedTextMessage?.contextInfo?.quotedMessage ||
+        message.imageMessage?.contextInfo?.quotedMessage ||
+        message.videoMessage?.contextInfo?.quotedMessage ||
+        null
+    );
+
+}
