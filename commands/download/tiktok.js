@@ -5,7 +5,7 @@ export default {
 
     name: "tiktok",
 
-    aliases: ["tk"],
+    aliases: ["tk", "tt"],
 
     description: "Download a TikTok video (no watermark).",
 
