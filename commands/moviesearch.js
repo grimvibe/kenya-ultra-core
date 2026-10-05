@@ -39,23 +39,25 @@ Example:
                 );
             }
 
-            const top = items.slice(0, 10);
+            const top = items.slice(0, 10).map(item => ({
+
+                subjectId: item.subjectId,
+                title: item.title,
+                year: item.releaseDate ? item.releaseDate.slice(0, 4) : "N/A",
+                type: item.subjectType === 1 ? "Movie" : "Series",
+                hasResource: !!item.hasResource,
+                rating: item.imdbRatingValue || "N/A",
+                poster: item.cover?.url
+
+            }));
 
             SearchCache.set(message.sender, top);
 
             const lines = top.map((item, i) => {
 
-                const year = item.releaseDate
-                    ? item.releaseDate.slice(0, 4)
-                    : "N/A";
-
-                const rating = item.imdbRatingValue || "N/A";
-
-                const type = item.subjectType === 1 ? "Movie" : "Series";
-
                 const resource = item.hasResource ? "✅" : "⚠️ no link";
 
-                return `${i + 1}. *${item.title}* (${year}) [${type}] — ⭐ ${rating} ${resource}`;
+                return `${i + 1}. *${item.title}* (${item.year}) [${item.type}] — ⭐ ${item.rating} ${resource}`;
 
             });
 
@@ -63,7 +65,7 @@ Example:
 
             return Reply.image({
 
-                url: first.cover?.url,
+                url: first.poster,
 
                 caption:
 `🔎 *Streaming Search: ${query}*

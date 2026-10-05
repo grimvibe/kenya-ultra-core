@@ -41,19 +41,33 @@ Example:
 
             try {
 
-                // Fallback provider — used automatically if the primary
-                // is down, so it recovers on its own once Prexzy is
-                // stable again.
+                // 2nd tier — a different provider entirely, recovers
+                // on its own once Prexzy is stable again.
                 response = await Cod3Uchiha.ask(prompt);
                 usedFallback = true;
 
-            } catch (fallbackErr) {
+            } catch (secondaryErr) {
 
-                return Reply.error(
-                    fallbackErr.message ||
-                    primaryErr.message ||
-                    "AI request failed. Please try again."
-                );
+                try {
+
+                    // 3rd tier — a different endpoint on Prexzy's own
+                    // API. Worth trying since individual Prexzy routes
+                    // have gone down independently of each other before
+                    // (chateverywhere/aichat failing while other
+                    // /ai/* routes stayed up).
+                    response = await Prexzy.deepQuery(prompt);
+                    usedFallback = true;
+
+                } catch (tertiaryErr) {
+
+                    return Reply.error(
+                        tertiaryErr.message ||
+                        secondaryErr.message ||
+                        primaryErr.message ||
+                        "AI request failed. Please try again."
+                    );
+
+                }
 
             }
 

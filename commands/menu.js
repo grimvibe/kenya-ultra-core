@@ -1,6 +1,7 @@
 import { assetUrl } from "../utils/assetUrl.js";
 import getMenuStyle from "./menu/index.js";
 import menuStyleService from "../services/menuStyleService.js";
+import botSettingsService from "../services/botSettingsService.js";
 
 export default {
     name: "menu",
@@ -63,8 +64,12 @@ export default {
             process.memoryUsage().rss / 1024 / 1024
         );
 
+        const botSettings = await botSettingsService.getSettings(message.sessionId);
+
         const owner =
-            process.env.OWNER_NAME || "Lawrence";
+            botSettings.ownerName ||
+            process.env.OWNER_NAME ||
+            "Lawrence";
 
         const version =
             process.env.VERSION || "1.0.0";
@@ -122,7 +127,7 @@ export default {
 
                 type: "image",
 
-                url: assetUrl("images/menu.jpg"),
+                url: botSettings.menuImageUrl || assetUrl("images/menu.jpg"),
 
                 caption: menu
 

@@ -1,6 +1,5 @@
 import Reply from "../utils/reply.js";
 import botSettingsService from "../services/botSettingsService.js";
-import isBotOwner from "../utils/isBotOwner.js";
 
 export default {
 
@@ -14,7 +13,7 @@ export default {
 
     async execute(ctx) {
 
-        if (!isBotOwner(ctx.sender, ctx.botIds)) {
+        if (!ctx.isBotOwner) {
             return Reply.error("Only the bot owner can use this command.");
         }
 

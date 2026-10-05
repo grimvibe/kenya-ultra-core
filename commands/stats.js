@@ -7,9 +7,9 @@ export default {
     description: "Owner-only: show connected session count.",
     category: "Owner",
 
-    async execute(message) {
+    async execute(ctx) {
 
-        if (!isOwner(message.sender)) {
+        if (!isOwner(ctx.sender, ctx.senderAlt, ctx.fromMe, ctx.botIds)) {
             return Reply.error("This command is restricted to the bot owner.");
         }
 
