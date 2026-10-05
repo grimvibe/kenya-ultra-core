@@ -1,4 +1,5 @@
 import express from "express";
+import { BufferJSON } from "baileys";
 import { loadAuth } from "../auth/sessionStore.js";
 
 const router = express.Router();
@@ -32,6 +33,18 @@ router.post("/", async (req, res) => {
         return res.status(200).json({
 
             success: true,
+
+            // Plain Express res.json() uses ordinary JSON.stringify,
+            // which does NOT know about Baileys' BufferJSON encoding
+            // — real Buffer values inside `auth` would come out as
+            // Node's default { type: 'Buffer', data: [...] } shape
+            // instead of the base64 string form Baileys' own
+            // BufferJSON.reviver expects, silently corrupting keys
+            // rather than throwing. Pre-serializing here with
+            // BufferJSON.replacer, and having the gateway parse this
+            // exact string with BufferJSON.reviver, keeps the
+            // encoding intact across the whole HTTP hop.
+            authRaw: JSON.stringify(auth, BufferJSON.replacer),
 
             auth,
 
