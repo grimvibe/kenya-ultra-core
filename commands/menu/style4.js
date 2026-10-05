@@ -40,6 +40,14 @@ export default function style4(data) {
 
                 menu += `│ ▢ ${prefix}${cmd.name}\n`;
 
+                if (cmd.aliases?.length) {
+
+                    for (let i = 0; i < cmd.aliases.length; i += 5) {
+                        menu += `│    ↳ ${cmd.aliases.slice(i, i + 5).join(", ")}\n`;
+                    }
+
+                }
+
             });
 
         menu += `╰─────────────◇\n\n`;
