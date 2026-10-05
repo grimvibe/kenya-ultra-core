@@ -1,75 +1,75 @@
 import Reply from "../../utils/reply.js";
 
-function buildStatusText(body, postedBy, timestamp) {
-
-    return (
-`╭⊷ 📢 *GROUP STATUS*
-
-│
-
-├⊷ ${body}
-
-│
-
-├⊷ 👤 *Posted by:* ${postedBy}
-
-├⊷ 🕒 *When:* ${timestamp}
-
-│
-
-╰⊷ 🐺 *Powered by Kenya-Ultra 👑*`
-    );
-
-}
-
 export default {
 
     name: "gstatus",
 
-    description: "Post a status/announcement in the group — type it directly, or reply to a text/photo message.",
+    aliases: [
+        "gcstatus",
+        "groupstatus",
+        "togstatus"
+    ],
+
+    description:
+        "Post text, images, videos or audio to WhatsApp Group Status.",
 
     category: "Group",
 
-    usage: ".gstatus <text>  (or reply to a text/photo with .gstatus [optional caption])",
+    usage:
+        ".gstatus <text> or reply to media with .gstatus",
 
     async execute(ctx) {
 
         const {
-
             isGroup,
-
             isAdmin,
-
             args,
-
-            sender,
-
-            pushName,
-
             message
-
         } = ctx;
 
-        if (!isGroup)
-            return Reply.error("This command can only be used in groups.");
+        // =====================================================
+        // Group only
+        // =====================================================
 
-        if (!isAdmin)
-            return Reply.error("Only group admins can post a status.");
+        if (!isGroup) {
 
-        const postedBy = pushName || (sender ? sender.split("@")[0] : "Admin");
+            return Reply.error(
+                "This command can only be used in groups."
+            );
 
-        const timestamp = new Intl.DateTimeFormat("en-GB", {
-            timeZone: "Africa/Nairobi",
-            dateStyle: "medium",
-            timeStyle: "short"
-        }).format(new Date());
+        }
 
-        const extraText = (args || []).join(" ").trim();
+        // =====================================================
+        // Admin only
+        // =====================================================
+
+        if (!isAdmin) {
+
+            return Reply.error(
+                "Only group admins can use this command."
+            );
+
+        }
+
+        const text =
+            (args || [])
+                .join(" ")
+                .trim();
+
+        // =====================================================
+        // Get quoted message
+        // =====================================================
 
         const quoted =
-            message?.extendedTextMessage?.contextInfo?.quotedMessage || null;
+            message
+                ?.extendedTextMessage
+                ?.contextInfo
+                ?.quotedMessage || null;
 
-        // ── Case 1: admin replied to a photo ──────────────────
+        // =====================================================
+        // Quoted IMAGE
+        // =====================================================
+
         if (quoted?.imageMessage) {
 
             return {
@@ -80,19 +80,56 @@ export default {
 
                 mediaType: "image",
 
-                captionText: extraText,
-
-                postedBy,
-
-                timestamp,
-
-                reply: Reply.info("Posting status...")
+                captionText: text
 
             };
 
         }
 
-        // ── Case 2: admin replied to a text message ───────────
+        // =====================================================
+        // Quoted VIDEO
+        // =====================================================
+
+        if (quoted?.videoMessage) {
+
+            return {
+
+                success: true,
+
+                action: "post_group_status",
+
+                mediaType: "video",
+
+                captionText: text
+
+            };
+
+        }
+
+        // =====================================================
+        // Quoted AUDIO
+        // =====================================================
+
+        if (quoted?.audioMessage) {
+
+            return {
+
+                success: true,
+
+                action: "post_group_status",
+
+                mediaType: "audio",
+
+                captionText: text
+
+            };
+
+        }
+
+        // =====================================================
+        // Quoted TEXT
+        // =====================================================
+
         const quotedText =
             quoted?.conversation ||
             quoted?.extendedTextMessage?.text ||
@@ -100,29 +137,61 @@ export default {
 
         if (quotedText) {
 
-            const body = extraText
-                ? `${quotedText}\n\n${extraText}`
-                : quotedText;
+            return {
 
-            return Reply.text(
-                buildStatusText(body, postedBy, timestamp),
-                sender ? [sender] : []
-            );
+                success: true,
+
+                action: "post_group_status",
+
+                mediaType: "text",
+
+                statusText: text
+                    ? `${quotedText}\n\n${text}`
+                    : quotedText
+
+            };
+
+        }
+
+        // =====================================================
+        // Normal typed TEXT
+        // =====================================================
+
+        if (text) {
+
+            return {
+
+                success: true,
+
+                action: "post_group_status",
+
+                mediaType: "text",
+
+                statusText: text
+
+            };
 
         }
 
-        // ── Case 3: plain typed status ─────────────────────────
-        if (extraText) {
-
-            return Reply.text(
-                buildStatusText(extraText, postedBy, timestamp),
-                sender ? [sender] : []
-            );
-
-        }
+        // =====================================================
+        // Nothing supplied
+        // =====================================================
 
         return Reply.error(
-            "Provide the status text, or reply to a text/photo message with .gstatus.\nExample:\n.gstatus Meeting moved to 6PM today."
+`❗ *Usage:*
+
+.gstatus <text>
+
+Or reply to:
+
+🖼️ Image
+🎥 Video
+🎵 Audio
+📝 Text
+
+with:
+
+.gstatus <optional caption>`
         );
 
     }
