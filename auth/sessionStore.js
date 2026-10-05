@@ -205,13 +205,189 @@ export async function loadMenuStyle(sessionId, userId) {
         `menustyle:${sessionId}:${userId}`
     ]);
 
-    return raw ? parseInt(raw, 10) : 1;
+    return raw ? parseInt(raw, 10) : 10;
+
+}
+
+/* ---------------- LEVELS / XP ---------------- */
+
+export async function loadLevelData(sessionId, groupId, userId) {
+
+    const raw = await redisRequest([
+        "get",
+        `level:${sessionId}:${groupId}:${userId}`
+    ]);
+
+    if (!raw) {
+
+        return {
+            xp: 0,
+            level: 0,
+            lastMessageAt: 0,
+            lastCommandAt: 0
+        };
+
+    }
+
+    return JSON.parse(raw);
+
+}
+
+export async function saveLevelData(sessionId, groupId, userId, data) {
+
+    await redisRequest([
+        "set",
+        `level:${sessionId}:${groupId}:${userId}`,
+        JSON.stringify(data)
+    ]);
+
+}
+
+export async function loadLevelSettings(sessionId, groupId) {
+
+    const raw = await redisRequest([
+        "get",
+        `levelsettings:${sessionId}:${groupId}`
+    ]);
+
+    if (!raw) {
+        return { announceEnabled: true };
+    }
+
+    return JSON.parse(raw);
+
+}
+
+export async function saveLevelSettings(sessionId, groupId, data) {
+
+    await redisRequest([
+        "set",
+        `levelsettings:${sessionId}:${groupId}`,
+        JSON.stringify(data)
+    ]);
+
+}
+
+/* ---------------- SPAM BURST TRACKING ---------------- */
+
+export async function loadRecentTimestamps(groupId, userId) {
+
+    const raw = await redisRequest([
+        "get",
+        `spamwindow:${groupId}:${userId}`
+    ]);
+
+    if (!raw) return [];
+
+    return JSON.parse(raw);
+
+}
+
+export async function saveRecentTimestamps(groupId, userId, timestamps) {
+
+    await redisRequest([
+        "set",
+        `spamwindow:${groupId}:${userId}`,
+        JSON.stringify(timestamps)
+    ]);
+
+}
+
+/* ---------------- CHATBOT SETTINGS ---------------- */
+
+export async function loadChatbotSettings(chatId) {
+
+    const raw = await redisRequest([
+        "get",
+        `chatbot:${chatId}`
+    ]);
+
+    if (!raw) {
+        return null;
+    }
+
+    return JSON.parse(raw);
+
+}
+
+export async function saveChatbotSettings(chatId, settings) {
+
+    await redisRequest([
+        "set",
+        `chatbot:${chatId}`,
+        JSON.stringify(settings)
+    ]);
+
+}
+
+/* ---------------- COMMAND COOLDOWNS ---------------- */
+
+export async function loadCooldown(key) {
+
+    const raw = await redisRequest([
+        "get",
+        `cooldown:${key}`
+    ]);
+
+    return raw ? Number(raw) : null;
+
+}
+
+export async function saveCooldown(key, timestamp) {
+
+    // Cooldowns are always short-lived (seconds), so let the key
+    // expire on its own instead of accumulating forever.
+    await redisRequest([
+        "set",
+        `cooldown:${key}`,
+        String(timestamp),
+        "EX",
+        300
+    ]);
+
+}
+
+/* ---------------- GROUP SETTINGS ---------------- */
+
+export async function loadGroupSettings(groupId) {
+
+    const raw = await redisRequest([
+        "get",
+        `groupsettings:${groupId}`
+    ]);
+
+    if (!raw) {
+        return null;
+    }
+
+    return JSON.parse(raw);
+
+}
+
+export async function saveGroupSettings(groupId, settings) {
+
+    await redisRequest([
+        "set",
+        `groupsettings:${groupId}`,
+        JSON.stringify(settings)
+    ]);
 
 }
 
 const DEFAULT_BOT_SETTINGS = {
     mode: "public",
-    prefix: "."
+    prefix: ".",
+    ownerName: null,
+    ownerNumber: null,
+    menuImageUrl: null,
+    viewOnceEmoji: null,
+    autoViewStatus: false,
+    autoReactStatus: false,
+    autoReactStatusEmoji: "💚",
+    // "off" | "groups" | "dms" | "all" — independent of one another;
+    // see services/botSettingsService.js for the (lack of) coupling.
+    autoTyping: "off",
+    autoRecording: "off"
 };
 
 export async function saveBotSettings(sessionId, data) {
