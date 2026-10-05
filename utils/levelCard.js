@@ -1,5 +1,25 @@
-import { createCanvas, loadImage } from "@napi-rs/canvas";
+import { createCanvas, loadImage, GlobalFonts } from "@napi-rs/canvas";
 import axios from "axios";
+import fs from "fs";
+import path from "path";
+
+// Register bundled fonts so text renders even when the server has no
+// system fonts installed (otherwise the card shows no text at all).
+const FONT_DIR = path.join(process.cwd(), "assets", "fonts");
+
+for (const file of ["DejaVuSans.ttf", "DejaVuSans-Bold.ttf"]) {
+
+    try {
+
+        const fontPath = path.join(FONT_DIR, file);
+
+        if (fs.existsSync(fontPath)) {
+            GlobalFonts.registerFromPath(fontPath, "DejaVu Sans");
+        }
+
+    } catch {}
+
+}
 
 const WIDTH = 900;
 const HEIGHT = 320;
